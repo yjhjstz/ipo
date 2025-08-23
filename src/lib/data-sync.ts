@@ -1,11 +1,9 @@
 import { prisma } from '@/lib/db'
 import { 
   FinnhubApiService, 
-  HkexFiniApiService, 
   IpoDataTransformer,
   RateLimiter,
-  FinnhubApiConfig,
-  HkexFiniApiConfig 
+  FinnhubApiConfig
 } from './external-apis'
 import { CreateIpoStock } from '@/types/ipo'
 
@@ -20,38 +18,17 @@ export interface SyncResult {
 
 export class IpoDataSyncService {
   private finnhubService: FinnhubApiService
-  private hkexService: HkexFiniApiService
   private finnhubRateLimiter: RateLimiter
-  private hkexRateLimiter: RateLimiter
 
-  constructor(
-    finnhubConfig: FinnhubApiConfig,
-    hkexConfig: HkexFiniApiConfig
-  ) {
+  constructor(finnhubConfig: FinnhubApiConfig) {
     this.finnhubService = new FinnhubApiService(finnhubConfig)
-    this.hkexService = new HkexFiniApiService(hkexConfig)
     
     // Finnhub: 60 calls per minute
     this.finnhubRateLimiter = new RateLimiter(60, 60000)
-    
-    // HKEX: Conservative rate limiting (to be adjusted based on actual limits)
-    this.hkexRateLimiter = new RateLimiter(30, 60000)
   }
 
-  async syncAllData(): Promise<{ us: SyncResult; hk: SyncResult }> {
-    const [usResult, hkResult] = await Promise.allSettled([
-      this.syncUsIpos(),
-      this.syncHkIpos()
-    ])
-
-    return {
-      us: usResult.status === 'fulfilled' 
-        ? usResult.value 
-        : { success: false, processed: 0, added: 0, updated: 0, skipped: 0, errors: [usResult.reason.message] },
-      hk: hkResult.status === 'fulfilled' 
-        ? hkResult.value 
-        : { success: false, processed: 0, added: 0, updated: 0, skipped: 0, errors: [hkResult.reason.message] }
-    }
+  async syncAllData(): Promise<SyncResult> {
+    return await this.syncUsIpos()
   }
 
   async syncUsIpos(): Promise<SyncResult> {
@@ -112,48 +89,6 @@ export class IpoDataSyncService {
     return result
   }
 
-  async syncHkIpos(): Promise<SyncResult> {
-    const result: SyncResult = {
-      success: false,
-      processed: 0,
-      added: 0,
-      updated: 0,
-      skipped: 0,
-      errors: []
-    }
-
-    try {
-      await this.hkexRateLimiter.waitIfNeeded()
-
-      // Get access token for HKEX FINI API
-      const accessToken = await this.hkexService.getAccessToken()
-      
-      // Get HK IPO data
-      const hkexData = await this.hkexService.getIpoListings(accessToken)
-
-      for (const ipoData of hkexData.listings) {
-        try {
-          result.processed++
-          
-          const transformedData = IpoDataTransformer.hkexToIpoStock(ipoData)
-          const syncResult = await this.upsertIpoStock(transformedData)
-          
-          if (syncResult === 'added') result.added++
-          else if (syncResult === 'updated') result.updated++
-          else result.skipped++
-          
-        } catch (error) {
-          result.errors.push(`Error processing ${ipoData.symbol}: ${error.message}`)
-        }
-      }
-
-      result.success = true
-    } catch (error) {
-      result.errors.push(`HK IPO sync failed: ${error.message}`)
-    }
-
-    return result
-  }
 
   private async upsertIpoStock(stockData: Partial<CreateIpoStock>): Promise<'added' | 'updated' | 'skipped'> {
     if (!stockData.symbol || !stockData.companyName) {
@@ -261,13 +196,5 @@ export function createSyncService(): IpoDataSyncService {
     apiKey: process.env.FINNHUB_API_KEY || ''
   }
 
-  const hkexConfig: HkexFiniApiConfig = {
-    baseUrl: process.env.HKEX_FINI_BASE_URL || 'https://api.hkex.com.hk/fini',
-    credentials: {
-      clientId: process.env.HKEX_FINI_CLIENT_ID || '',
-      clientSecret: process.env.HKEX_FINI_CLIENT_SECRET || ''
-    }
-  }
-
-  return new IpoDataSyncService(finnhubConfig, hkexConfig)
+  return new IpoDataSyncService(finnhubConfig)
 }

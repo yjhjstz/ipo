@@ -115,7 +115,6 @@ export default function AddStockForm({ onStockAdded, onCancel }: AddStockFormPro
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="US">US 🇺🇸</option>
-              <option value="HK">Hong Kong 🇭🇰</option>
             </select>
           </div>
 

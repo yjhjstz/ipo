@@ -51,7 +51,7 @@ export default function Home() {
                 IPO Stock Analysis
               </h1>
               <p className="text-lg text-gray-600">
-                Track and analyze upcoming IPOs from US and Hong Kong markets
+                Track and analyze upcoming IPOs from the US market
               </p>
             </div>
           </div>

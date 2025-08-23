@@ -207,10 +207,10 @@ export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: Stoc
                 </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <div className="flex items-center">
-                    <span className="text-2xl mr-2">{stock.market === 'US' ? '🇺🇸' : '🇭🇰'}</span>
+                    <span className="text-2xl mr-2">🇺🇸</span>
                     <div>
-                      <p className="text-sm font-semibold text-gray-900">{stock.market === 'US' ? '美国' : '香港'}</p>
-                      <p className="text-xs text-gray-500">{stock.market === 'US' ? 'NASDAQ/NYSE' : 'HKEX'}</p>
+                      <p className="text-sm font-semibold text-gray-900">美国</p>
+                      <p className="text-xs text-gray-500">NASDAQ/NYSE</p>
                     </div>
                   </div>
                 </td>

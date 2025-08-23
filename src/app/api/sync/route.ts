@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createSyncService } from '@/lib/data-sync'
 
 // GET /api/sync - Get sync status and last sync information
@@ -22,22 +22,12 @@ export async function GET() {
 }
 
 // POST /api/sync - Trigger manual data synchronization
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
-    const body = await request.json().catch(() => ({}))
-    const { market } = body
-
     const syncService = createSyncService()
     
-    let result
-    if (market === 'US') {
-      result = { us: await syncService.syncUsIpos(), hk: null }
-    } else if (market === 'HK') {
-      result = { us: null, hk: await syncService.syncHkIpos() }
-    } else {
-      // Sync both markets
-      result = await syncService.syncAllData()
-    }
+    // Sync US market only
+    const result = await syncService.syncAllData()
 
     const response = {
       success: true,

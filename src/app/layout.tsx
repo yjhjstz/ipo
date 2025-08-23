@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IPO Tracker - US & Hong Kong Stock Analysis",
-  description: "Track and analyze upcoming IPOs from US and Hong Kong markets with comprehensive data and insights.",
+  title: "IPO Tracker - US Stock Analysis",
+  description: "Track and analyze upcoming IPOs from the US market with comprehensive data and insights.",
 };
 
 export default function RootLayout({

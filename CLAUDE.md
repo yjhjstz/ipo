@@ -21,17 +21,17 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Architecture Overview
 
-This is a **Next.js 15 IPO tracking application** that aggregates and analyzes IPO data from US and Hong Kong markets.
+This is a **Next.js 15 IPO tracking application** that aggregates and analyzes IPO data from the US market.
 
 ### Core Architecture
 - **Framework**: Next.js 15 with App Router, Turbopack, and TypeScript
 - **Database**: PostgreSQL with Prisma ORM
-- **External APIs**: Finnhub (US market) and HKEX FINI (Hong Kong market)
+- **External APIs**: Finnhub (US market)
 - **Styling**: Tailwind CSS v4 with PostCSS
 - **UI Components**: Lucide React icons, Recharts for data visualization
 
 ### Data Flow
-1. **External APIs** (Finnhub, HKEX) → **Data Sync Services** → **PostgreSQL Database**
+1. **External APIs** (Finnhub) → **Data Sync Services** → **PostgreSQL Database**
 2. **Next.js API Routes** → **Prisma Client** → **Database**
 3. **React Components** → **API Routes** → **Database Operations**
 
@@ -71,7 +71,7 @@ src/
 ## Database Schema
 
 The core entity is `IpoStock` with these key fields:
-- **Identity**: `id`, `symbol`, `companyName`, `market` (US/HK)
+- **Identity**: `id`, `symbol`, `companyName`, `market` (US)
 - **Pricing**: `expectedPrice`, `priceRange`, `sharesOffered`
 - **Status**: `status` (UPCOMING/PRICING/LISTED/WITHDRAWN/POSTPONED)
 - **Details**: `sector`, `industry`, `underwriters`, `marketCap`
@@ -84,10 +84,6 @@ The core entity is `IpoStock` with these key fields:
 - **Data**: IPO calendar, pricing, shares offered
 - **Authentication**: API key in `FINNHUB_API_KEY`
 
-### HKEX FINI API (Hong Kong Market)
-- **Authentication**: OAuth2 with client credentials
-- **Data**: Digital settlement platform data
-- **Config**: `HKEX_FINI_CLIENT_ID`, `HKEX_FINI_CLIENT_SECRET`
 
 ### Data Synchronization Features
 - **Smart Deduplication**: Prevents duplicates based on symbol+market
@@ -105,10 +101,6 @@ DATABASE_URL="postgresql://..."
 FINNHUB_API_KEY="your-finnhub-api-key"
 FINNHUB_BASE_URL="https://finnhub.io/api/v1"
 
-# HKEX FINI API
-HKEX_FINI_CLIENT_ID="your-hkex-client-id"
-HKEX_FINI_CLIENT_SECRET="your-hkex-client-secret"
-HKEX_FINI_BASE_URL="https://api.hkex.com.hk/fini"
 
 # AI Services (Optional)
 ANTHROPIC_API_KEY="your-claude-api-key"
@@ -126,8 +118,7 @@ CRON_SECRET_TOKEN="your-secret-cron-token"
 
 ### Data Synchronization
 - `GET/POST /api/sync` - Sync status/trigger full sync
-- `POST /api/sync/finnhub` - Sync US market only
-- `POST /api/sync/hkex` - Sync Hong Kong market only
+- `POST /api/sync/finnhub` - Sync US market
 - `POST /api/sync/scheduled` - Automated sync endpoint
 
 ### Analytics

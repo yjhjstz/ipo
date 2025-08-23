@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
 
     const syncService = createSyncService()
     
-    // Run sync for both markets
+    // Run sync for US market
     const results = await syncService.syncAllData()
     
     // Log the results
