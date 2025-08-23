@@ -15,21 +15,41 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 获取股票数据
-    const stock = await prisma.ipoStock.findFirst({
-      where: {
-        symbol: symbol,
-        status: {
-          not: 'WITHDRAWN'
+    // 尝试获取IPO股票数据，如果不存在则创建基本股票对象
+    let stock
+    try {
+      stock = await prisma.ipoStock.findFirst({
+        where: {
+          symbol: symbol,
+          status: {
+            not: 'WITHDRAWN'
+          }
         }
-      }
-    })
+      })
+    } catch (error) {
+      // 数据库连接问题，继续使用基本股票信息
+      console.warn('Database connection issue:', error)
+    }
 
+    // 如果数据库中没有该股票，创建基本股票对象供分析
     if (!stock) {
-      return NextResponse.json(
-        { error: 'Stock not found' }, 
-        { status: 404 }
-      )
+      stock = {
+        id: `temp-${symbol}`,
+        symbol: symbol,
+        companyName: symbol, // AI服务会获取真实公司名
+        market: 'US', // 默认假设为美股
+        status: 'LISTED', // 假设已上市
+        expectedPrice: null,
+        priceRange: null,
+        sharesOffered: null,
+        ipoDate: null,
+        sector: null,
+        industry: null,
+        underwriters: null,
+        marketCap: null,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
     }
 
     // 选择AI服务提供商

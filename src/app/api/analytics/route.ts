@@ -36,19 +36,34 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Get upcoming IPOs in the next 30 days instead of recent listings
+    // Get upcoming IPOs - more flexible criteria
     const upcomingIpos = await prisma.ipoStock.findMany({
       where: {
         status: {
           in: ['UPCOMING', 'PRICING']
         },
-        ipoDate: {
-          gte: new Date(),
-          lte: new Date(new Date().setDate(new Date().getDate() + 30))
-        }
+        OR: [
+          // IPOs with specific dates in next 30 days
+          {
+            ipoDate: {
+              gte: new Date(),
+              lte: new Date(new Date().setDate(new Date().getDate() + 30))
+            }
+          },
+          // IPOs without specific dates but marked as upcoming/pricing
+          {
+            ipoDate: null,
+            status: {
+              in: ['UPCOMING', 'PRICING']
+            }
+          }
+        ]
       },
-      orderBy: { ipoDate: 'asc' },
-      take: 10
+      orderBy: [
+        { ipoDate: 'asc' },
+        { updatedAt: 'desc' }
+      ],
+      take: 20
     })
 
     // Get monthly IPO count trend (last 6 months)

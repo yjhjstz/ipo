@@ -111,7 +111,20 @@ export class GitHubAIService {
       }
 
       try {
-        const analysisData = JSON.parse(content)
+        // 尝试直接解析JSON
+        let analysisData
+        try {
+          analysisData = JSON.parse(content)
+        } catch (parseError) {
+          // 如果直接解析失败，尝试提取JSON部分
+          console.log('Direct JSON parse failed, trying to extract JSON...')
+          const jsonMatch = content.match(/\{[\s\S]*\}/)
+          if (jsonMatch) {
+            analysisData = JSON.parse(jsonMatch[0])
+          } else {
+            throw new Error('No JSON found in response')
+          }
+        }
         
         return {
           symbol: stockData.symbol,
@@ -120,6 +133,7 @@ export class GitHubAIService {
         }
       } catch (parseError) {
         console.error('Failed to parse GitHub AI response:', content)
+        console.error('Parse error:', parseError)
         throw new Error('Invalid JSON response from GitHub AI')
       }
     } catch (error) {
@@ -217,7 +231,28 @@ ${ipoData.slice(0, 10).map(stock =>
         throw new Error('Invalid response format from GitHub AI')
       }
 
-      return JSON.parse(content)
+      try {
+        // 尝试直接解析JSON
+        let analysisData
+        try {
+          analysisData = JSON.parse(content)
+        } catch (parseError) {
+          // 如果直接解析失败，尝试提取JSON部分
+          console.log('Direct JSON parse failed, trying to extract JSON...')
+          const jsonMatch = content.match(/\{[\s\S]*\}/)
+          if (jsonMatch) {
+            analysisData = JSON.parse(jsonMatch[0])
+          } else {
+            throw new Error('No JSON found in response')
+          }
+        }
+
+        return analysisData
+      } catch (parseError) {
+        console.error('Failed to parse GitHub AI market response:', content)
+        console.error('Parse error:', parseError)
+        throw parseError
+      }
     } catch (error) {
       console.error('GitHub AI market analysis error:', error)
       
