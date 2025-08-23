@@ -1,0 +1,213 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { RefreshCw, Download, Clock, CheckCircle, XCircle } from 'lucide-react'
+
+interface SyncInfo {
+  market: string
+  count: number
+  lastUpdate: string | null
+}
+
+interface SyncResult {
+  success: boolean
+  processed: number
+  added: number
+  updated: number
+  skipped: number
+  errors: string[]
+}
+
+export default function DataSyncManager() {
+  const [syncInfo, setSyncInfo] = useState<SyncInfo[]>([])
+  const [loading, setLoading] = useState(false)
+  const [lastSyncResult, setLastSyncResult] = useState<{us: SyncResult | null, hk: SyncResult | null} | null>(null)
+
+  useEffect(() => {
+    fetchSyncInfo()
+  }, [])
+
+  const fetchSyncInfo = async () => {
+    try {
+      const response = await fetch('/api/sync')
+      const data = await response.json()
+      if (data.success) {
+        setSyncInfo(data.data)
+      }
+    } catch (error) {
+      console.error('Failed to fetch sync info:', error)
+    }
+  }
+
+  const handleSync = async (market?: 'US' | 'HK') => {
+    setLoading(true)
+    setLastSyncResult(null)
+
+    try {
+      const endpoint = market === 'US' ? '/api/sync/finnhub' 
+                    : market === 'HK' ? '/api/sync/hkex'
+                    : '/api/sync'
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ market })
+      })
+
+      const result = await response.json()
+      
+      if (result.success) {
+        if (market) {
+          // Single market sync
+          setLastSyncResult(market === 'US' 
+            ? { us: result.data, hk: null }
+            : { us: null, hk: result.data }
+          )
+        } else {
+          // Both markets sync
+          setLastSyncResult(result.data)
+        }
+        
+        // Refresh sync info
+        await fetchSyncInfo()
+      } else {
+        alert(`Sync failed: ${result.error}`)
+      }
+    } catch (error) {
+      console.error('Sync failed:', error)
+      alert('Sync failed. Check console for details.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const SyncResultCard = ({ title, result }: { title: string, result: SyncResult | null }) => {
+    if (!result) return null
+
+    return (
+      <div className="bg-white rounded-lg shadow p-4 border">
+        <div className="flex items-center justify-between mb-3">
+          <h4 className="font-semibold text-gray-900">{title}</h4>
+          {result.success ? (
+            <CheckCircle className="h-5 w-5 text-green-500" />
+          ) : (
+            <XCircle className="h-5 w-5 text-red-500" />
+          )}
+        </div>
+        
+        <div className="grid grid-cols-2 gap-4 text-sm">
+          <div>
+            <span className="text-gray-500">Processed:</span>
+            <span className="ml-2 font-medium">{result.processed}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">Added:</span>
+            <span className="ml-2 font-medium text-green-600">{result.added}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">Updated:</span>
+            <span className="ml-2 font-medium text-blue-600">{result.updated}</span>
+          </div>
+          <div>
+            <span className="text-gray-500">Skipped:</span>
+            <span className="ml-2 font-medium text-gray-600">{result.skipped}</span>
+          </div>
+        </div>
+
+        {result.errors.length > 0 && (
+          <div className="mt-3 p-2 bg-red-50 rounded">
+            <h5 className="text-sm font-medium text-red-800 mb-1">Errors:</h5>
+            <ul className="text-xs text-red-700 list-disc list-inside">
+              {result.errors.map((error, index) => (
+                <li key={index}>{error}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Data Synchronization</h3>
+          <button
+            onClick={() => fetchSyncInfo()}
+            className="p-2 text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100"
+            title="Refresh sync info"
+          >
+            <RefreshCw className="h-5 w-5" />
+          </button>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          {syncInfo.map((info) => (
+            <div key={info.market} className="p-4 border rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-gray-900">
+                  {info.market === 'US' ? '🇺🇸 US Market' : '🇭🇰 HK Market'}
+                </h4>
+                <span className="text-sm font-semibold text-blue-600">
+                  {info.count} IPOs
+                </span>
+              </div>
+              <div className="flex items-center text-sm text-gray-500">
+                <Clock className="h-4 w-4 mr-1" />
+                {info.lastUpdate 
+                  ? new Date(info.lastUpdate).toLocaleString()
+                  : 'Never synced'
+                }
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex flex-wrap gap-3">
+          <button
+            onClick={() => handleSync()}
+            disabled={loading}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            <Download className="h-4 w-4" />
+            {loading ? 'Syncing...' : 'Sync All Markets'}
+          </button>
+          
+          <button
+            onClick={() => handleSync('US')}
+            disabled={loading}
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            🇺🇸 Sync US (Finnhub)
+          </button>
+          
+          <button
+            onClick={() => handleSync('HK')}
+            disabled={loading}
+            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-700 disabled:bg-purple-400 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            🇭🇰 Sync HK (FINI)
+          </button>
+        </div>
+      </div>
+
+      {/* Sync Results */}
+      {lastSyncResult && (
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold text-gray-900">Last Sync Results</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <SyncResultCard 
+              title="🇺🇸 US Market (Finnhub)" 
+              result={lastSyncResult.us} 
+            />
+            <SyncResultCard 
+              title="🇭🇰 HK Market (FINI)" 
+              result={lastSyncResult.hk} 
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
