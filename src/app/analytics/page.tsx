@@ -71,12 +71,13 @@ export default function Analytics() {
   const [loading, setLoading] = useState(true)
   const [marketAnalysis, setMarketAnalysis] = useState<MarketAnalysis | null>(null)
   const [stockAnalysis, setStockAnalysis] = useState<StockAnalysis | null>(null)
-  const [analysisLoading, setAnalysisLoading] = useState(false)
+  const [marketAnalysisLoading, setMarketAnalysisLoading] = useState(false)
+  const [stockAnalysisLoading, setStockAnalysisLoading] = useState(false)
   const [selectedStock, setSelectedStock] = useState('')
-  const [aiProvider, setAiProvider] = useState<'perplexity' | 'claude'>('perplexity')
+  const [aiProvider, setAiProvider] = useState<'perplexity' | 'claude'>('claude')
 
   const fetchMarketAnalysis = async () => {
-    setAnalysisLoading(true)
+    setMarketAnalysisLoading(true)
     try {
       const response = await fetch('/api/analysis/market', {
         method: 'POST',
@@ -93,12 +94,12 @@ export default function Analytics() {
     } catch (error) {
       console.error('Failed to fetch market analysis:', error)
     } finally {
-      setAnalysisLoading(false)
+      setMarketAnalysisLoading(false)
     }
   }
 
   const fetchStockAnalysis = async (symbol: string) => {
-    setAnalysisLoading(true)
+    setStockAnalysisLoading(true)
     try {
       const response = await fetch('/api/analysis/stock', {
         method: 'POST',
@@ -115,7 +116,7 @@ export default function Analytics() {
     } catch (error) {
       console.error('Failed to fetch stock analysis:', error)
     } finally {
-      setAnalysisLoading(false)
+      setStockAnalysisLoading(false)
     }
   }
 
@@ -153,7 +154,7 @@ export default function Analytics() {
     )
   }
 
-  const statusData = data.stats.reduce((acc: Array<{ status: string; count: number }>, curr) => {
+  const statusData = data.stats.reduce((acc: Array<{ status: string; count: number }>, curr: { status: string; market: string; _count: { id: number } }) => {
     const existing = acc.find(item => item.status === curr.status)
     if (existing) {
       existing.count += curr._count.id
@@ -161,7 +162,7 @@ export default function Analytics() {
       acc.push({ status: curr.status, count: curr._count.id })
     }
     return acc
-  }, [])
+  }, [] as Array<{ status: string; count: number }>)
 
   const marketData = data.totalsByMarket.map(item => ({
     market: item.market === 'US' ? 'United States 🇺🇸' : 'Hong Kong 🇭🇰',
@@ -207,7 +208,7 @@ export default function Analytics() {
                   }`}
                 >
                   <Brain className="h-4 w-4 mr-1" />
-                  GitHub
+                  GitHub AI
                 </button>
               </div>
             </div>
@@ -229,16 +230,16 @@ export default function Analytics() {
                   <div>
                     <h3 className="text-xl font-bold">AI Market Analysis</h3>
                     <p className="text-sm text-slate-700 font-medium">
-                      {aiProvider === 'perplexity' ? 'Perplexity AI 市场洞察' : 'GitHub AI (GPT-4.1) 市场洞察'}
+                      {aiProvider === 'perplexity' ? 'Perplexity AI 市场洞察' : 'GitHub AI (GPT-4) 市场洞察'}
                     </p>
                   </div>
                 </div>
                 <button
                   onClick={fetchMarketAnalysis}
-                  disabled={analysisLoading}
+                  disabled={marketAnalysisLoading}
                   className="bg-slate-600 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 text-white border border-slate-400"
                 >
-                  {analysisLoading ? '分析中...' : '获取分析'}
+                  {marketAnalysisLoading ? '分析中...' : '获取分析'}
                 </button>
               </div>
               
@@ -301,7 +302,7 @@ export default function Analytics() {
                   <div>
                     <h3 className="text-xl font-bold">AI Stock Analysis</h3>
                     <p className="text-sm text-slate-700 font-medium">
-                      {aiProvider === 'perplexity' ? 'Perplexity AI 个股分析' : 'GitHub AI (GPT-4.1) 个股分析'}
+                      {aiProvider === 'perplexity' ? 'Perplexity AI 个股分析' : 'GitHub AI (GPT-4) 个股分析'}
                     </p>
                   </div>
                 </div>
@@ -318,10 +319,10 @@ export default function Analytics() {
                   />
                   <button
                     onClick={() => selectedStock && fetchStockAnalysis(selectedStock)}
-                    disabled={analysisLoading || !selectedStock}
+                    disabled={stockAnalysisLoading || !selectedStock}
                     className="bg-slate-600 hover:bg-slate-700 px-4 py-2 rounded-lg text-sm font-semibold transition-colors disabled:opacity-50 text-white border border-slate-400"
                   >
-                    {analysisLoading ? '分析中...' : '分析'}
+                    {stockAnalysisLoading ? '分析中...' : '分析'}
                   </button>
                 </div>
               </div>
@@ -564,7 +565,7 @@ export default function Analytics() {
                     borderRadius: '8px',
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                   }}
-                  formatter={(value: any) => [`$${value?.toFixed(2)}`, 'Avg Price']}
+                  formatter={(value: number) => [`$${value?.toFixed(2)}`, 'Avg Price']}
                 />
                 <Bar dataKey="avgPrice" fill="url(#greenGradient)" radius={[6, 6, 0, 0]} />
                 <defs>
