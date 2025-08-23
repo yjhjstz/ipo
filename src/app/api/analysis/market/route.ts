@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { createPerplexityAIService } from '@/lib/perplexity-ai'
-import { createClaudeAIService } from '@/lib/claude-ai'
+import { createGitHubAIService } from '@/lib/github-ai'
 
 // POST /api/analysis/market - 获取市场分析
 export async function POST(request: NextRequest) {
@@ -30,8 +30,8 @@ export async function POST(request: NextRequest) {
     // 选择AI服务提供商
     let analysis
     if (provider === 'claude') {
-      const claudeService = createClaudeAIService()
-      analysis = await claudeService.analyzeMarket(stocks)
+      const githubService = createGitHubAIService()
+      analysis = await githubService.analyzeMarket(stocks)
     } else {
       // 默认使用Perplexity AI
       const perplexityService = createPerplexityAIService()
@@ -44,7 +44,7 @@ export async function POST(request: NextRequest) {
         ...analysis,
         dataPoints: stocks.length,
         market: market || 'All Markets',
-        provider: provider === 'claude' ? 'Claude AI' : 'Perplexity AI'
+        provider: provider === 'claude' ? 'GitHub AI (GPT-4.1)' : 'Perplexity AI'
       },
       timestamp: new Date().toISOString()
     })

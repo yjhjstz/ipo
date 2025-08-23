@@ -191,7 +191,7 @@ export default function Analytics() {
                   onClick={() => setAiProvider('perplexity')}
                   className={`px-3 py-1 rounded-md text-sm font-semibold transition-colors flex items-center ${
                     aiProvider === 'perplexity' 
-                      ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-slate-700 shadow-md' 
+                      ? 'bg-gradient-to-r from-blue-500 to-blue-600 text-slate-700 shadow-md' 
                       : 'text-slate-700 hover:bg-slate-100 hover:text-slate-900'
                   }`}
                 >
@@ -207,7 +207,7 @@ export default function Analytics() {
                   }`}
                 >
                   <Brain className="h-4 w-4 mr-1" />
-                  Claude
+                  GitHub
                 </button>
               </div>
             </div>
@@ -219,7 +219,7 @@ export default function Analytics() {
           {/* Market Analysis */}
           <div className={`rounded-xl shadow-lg text-slate-700 ${
             aiProvider === 'perplexity' 
-              ? 'bg-gradient-to-br from-purple-500 to-pink-500' 
+              ? 'bg-gradient-to-br from-blue-500 to-indigo-600' 
               : 'bg-gradient-to-br from-blue-500 to-indigo-600'
           }`}>
             <div className="p-6">
@@ -229,7 +229,7 @@ export default function Analytics() {
                   <div>
                     <h3 className="text-xl font-bold">AI Market Analysis</h3>
                     <p className="text-sm text-slate-700 font-medium">
-                      {aiProvider === 'perplexity' ? 'Perplexity AI 市场洞察' : 'Claude AI 市场洞察'}
+                      {aiProvider === 'perplexity' ? 'Perplexity AI 市场洞察' : 'GitHub AI (GPT-4.1) 市场洞察'}
                     </p>
                   </div>
                 </div>
@@ -291,7 +291,7 @@ export default function Analytics() {
           {/* Stock Analysis */}
           <div className={`rounded-xl shadow-lg text-slate-700 ${
             aiProvider === 'perplexity' 
-              ? 'bg-gradient-to-br from-orange-500 to-red-500' 
+              ? 'bg-gradient-to-br from-blue-500 to-cyan-500' 
               : 'bg-gradient-to-br from-blue-500 to-cyan-500'
           }`}>
             <div className="p-6">
@@ -301,7 +301,7 @@ export default function Analytics() {
                   <div>
                     <h3 className="text-xl font-bold">AI Stock Analysis</h3>
                     <p className="text-sm text-slate-700 font-medium">
-                      {aiProvider === 'perplexity' ? 'Perplexity AI 个股分析' : 'Claude AI 个股分析'}
+                      {aiProvider === 'perplexity' ? 'Perplexity AI 个股分析' : 'GitHub AI (GPT-4.1) 个股分析'}
                     </p>
                   </div>
                 </div>
