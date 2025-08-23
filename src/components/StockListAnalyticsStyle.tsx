@@ -1,9 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import Link from 'next/link'
 import { IpoStock } from '@/types/ipo'
-import { Calendar, TrendingUp, Building2, DollarSign, Globe, MoreHorizontal, Edit, Trash2, Eye } from 'lucide-react'
+import { Calendar, TrendingUp, Building2, DollarSign, Globe, MoreHorizontal, Edit, Trash2, BarChart3 } from 'lucide-react'
 
 interface StockListAnalyticsStyleProps {
   stocks: IpoStock[]
@@ -12,9 +11,12 @@ interface StockListAnalyticsStyleProps {
 
 export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: StockListAnalyticsStyleProps) {
   const [selectedStock, setSelectedStock] = useState<string | null>(null)
+  const [showMetrics, setShowMetrics] = useState(false)
+  const [metricsData, setMetricsData] = useState<any>(null)
+  const [loadingMetrics, setLoadingMetrics] = useState(false)
   
-  // Filter out stocks with PRICING status
-  const filteredStocks = stocks.filter(stock => stock.status !== 'PRICING')
+  // Show all stocks including PRICING status
+  const filteredStocks = stocks
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this stock?')) {
@@ -31,6 +33,26 @@ export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: Stoc
       } catch (error) {
         alert('Error deleting stock')
       }
+    }
+  }
+
+  const handleViewMetrics = async (symbol: string) => {
+    setLoadingMetrics(true)
+    setShowMetrics(true)
+    
+    try {
+      const response = await fetch(`/api/stock/metric?symbol=${symbol}&metric=all`)
+      if (response.ok) {
+        const data = await response.json()
+        setMetricsData(data)
+      } else {
+        alert('Failed to fetch financial metrics')
+      }
+    } catch (error) {
+      console.error('Error fetching financial metrics:', error)
+      alert('Error fetching financial metrics')
+    } finally {
+      setLoadingMetrics(false)
     }
   }
 
@@ -235,13 +257,13 @@ export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: Stoc
                 </td>
                 <td className="px-6 py-5 whitespace-nowrap">
                   <div className="flex items-center space-x-2">
-                    <Link
-                      href={`/performance/${stock.id}`}
-                      className="text-blue-600 hover:text-blue-800 p-1 rounded transition-colors"
-                      title="查看详情"
+                    <button
+                      onClick={() => handleViewMetrics(stock.symbol)}
+                      className="text-green-600 hover:text-green-800 p-1 rounded transition-colors"
+                      title="基本财务指标"
                     >
-                      <Eye className="h-4 w-4" />
-                    </Link>
+                      <BarChart3 className="h-4 w-4" />
+                    </button>
                     <button
                       onClick={() => handleDelete(stock.id)}
                       className="text-red-600 hover:text-red-800 p-1 rounded transition-colors"
@@ -271,6 +293,182 @@ export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: Stoc
           </tbody>
         </table>
       </div>
+
+      {/* 基本财务指标弹窗 */}
+      {showMetrics && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            <div className="px-6 py-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xl font-bold flex items-center">
+                  <BarChart3 className="h-6 w-6 mr-2" />
+                  {metricsData?.symbol} 基本财务指标
+                </h3>
+                <button
+                  onClick={() => setShowMetrics(false)}
+                  className="text-white hover:text-gray-200 text-2xl"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-6 overflow-y-auto max-h-[calc(80vh-120px)]">
+              {loadingMetrics ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto"></div>
+                  <p className="mt-4 text-gray-600">正在获取财务指标数据...</p>
+                </div>
+              ) : metricsData?.metrics?.metric ? (
+                <div className="space-y-6">
+                  {/* 估值指标 */}
+                  <div className="bg-blue-50 rounded-lg p-4">
+                    <h4 className="text-lg font-bold text-blue-800 mb-3 flex items-center">
+                      <DollarSign className="h-5 w-5 mr-2" />
+                      估值指标
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {metricsData.metrics.metric.peBasicExclExtraTTM && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">市盈率 (TTM)</p>
+                          <p className="text-xl font-bold text-blue-600">{metricsData.metrics.metric.peBasicExclExtraTTM.toFixed(2)}</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.pbAnnual && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">市净率</p>
+                          <p className="text-xl font-bold text-blue-600">{metricsData.metrics.metric.pbAnnual.toFixed(2)}</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.psAnnual && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">市销率</p>
+                          <p className="text-xl font-bold text-blue-600">{metricsData.metrics.metric.psAnnual.toFixed(2)}</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.pcfShareTTM && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">市现率 (TTM)</p>
+                          <p className="text-xl font-bold text-blue-600">{metricsData.metrics.metric.pcfShareTTM.toFixed(2)}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 盈利能力 */}
+                  <div className="bg-green-50 rounded-lg p-4">
+                    <h4 className="text-lg font-bold text-green-800 mb-3 flex items-center">
+                      <TrendingUp className="h-5 w-5 mr-2" />
+                      盈利能力
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {metricsData.metrics.metric.grossMarginTTM && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">毛利率 (TTM)</p>
+                          <p className="text-xl font-bold text-green-600">{(metricsData.metrics.metric.grossMarginTTM * 100).toFixed(1)}%</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.operatingMarginTTM && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">营业利润率 (TTM)</p>
+                          <p className="text-xl font-bold text-green-600">{(metricsData.metrics.metric.operatingMarginTTM * 100).toFixed(1)}%</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.netProfitMarginTTM && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">净利润率 (TTM)</p>
+                          <p className="text-xl font-bold text-green-600">{(metricsData.metrics.metric.netProfitMarginTTM * 100).toFixed(1)}%</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.roeTTM && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">净资产收益率 (TTM)</p>
+                          <p className="text-xl font-bold text-green-600">{(metricsData.metrics.metric.roeTTM * 100).toFixed(1)}%</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 股价表现 */}
+                  <div className="bg-purple-50 rounded-lg p-4">
+                    <h4 className="text-lg font-bold text-purple-800 mb-3 flex items-center">
+                      <BarChart3 className="h-5 w-5 mr-2" />
+                      股价表现
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {metricsData.metrics.metric["52WeekHigh"] && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">52周最高</p>
+                          <p className="text-xl font-bold text-red-600">${metricsData.metrics.metric["52WeekHigh"].toFixed(2)}</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric["52WeekLow"] && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">52周最低</p>
+                          <p className="text-xl font-bold text-green-600">${metricsData.metrics.metric["52WeekLow"].toFixed(2)}</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric["52WeekPriceReturnDaily"] && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">52周涨跌幅</p>
+                          <p className={`text-xl font-bold ${metricsData.metrics.metric["52WeekPriceReturnDaily"] >= 0 ? 'text-red-600' : 'text-green-600'}`}>
+                            {(metricsData.metrics.metric["52WeekPriceReturnDaily"] * 100).toFixed(1)}%
+                          </p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.beta && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">Beta系数</p>
+                          <p className="text-xl font-bold text-purple-600">{metricsData.metrics.metric.beta.toFixed(2)}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 财务健康度 */}
+                  <div className="bg-orange-50 rounded-lg p-4">
+                    <h4 className="text-lg font-bold text-orange-800 mb-3 flex items-center">
+                      <Building2 className="h-5 w-5 mr-2" />
+                      财务健康度
+                    </h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      {metricsData.metrics.metric.currentRatioAnnual && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">流动比率</p>
+                          <p className="text-xl font-bold text-orange-600">{metricsData.metrics.metric.currentRatioAnnual.toFixed(2)}</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.longTermDebtTotalCapitalAnnual && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">长期负债率</p>
+                          <p className="text-xl font-bold text-orange-600">{(metricsData.metrics.metric.longTermDebtTotalCapitalAnnual * 100).toFixed(1)}%</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.totalDebtToEquityAnnual && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">资产负债率</p>
+                          <p className="text-xl font-bold text-orange-600">{(metricsData.metrics.metric.totalDebtToEquityAnnual * 100).toFixed(1)}%</p>
+                        </div>
+                      )}
+                      {metricsData.metrics.metric.roaTTM && (
+                        <div className="bg-white rounded p-3 text-center">
+                          <p className="text-sm text-gray-600">总资产收益率 (TTM)</p>
+                          <p className="text-xl font-bold text-orange-600">{(metricsData.metrics.metric.roaTTM * 100).toFixed(1)}%</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <BarChart3 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-600">暂无财务指标数据</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
