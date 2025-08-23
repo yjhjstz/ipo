@@ -6,6 +6,8 @@ import StockListAnalyticsStyle from '@/components/StockListAnalyticsStyle'
 import AddStockForm from '@/components/AddStockForm'
 import MarketNews from '@/components/MarketNews'
 import MarketHolidays from '@/components/MarketHolidays'
+import UvStatsDisplay from '@/components/UvStatsDisplay'
+import UvTracker from '@/components/UvTracker'
 import { Plus } from 'lucide-react'
 
 export default function Home() {
@@ -40,14 +42,19 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <UvTracker />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            IPO Stock Analysis
-          </h1>
-          <p className="text-lg text-gray-600">
-            Track and analyze upcoming IPOs from US and Hong Kong markets
-          </p>
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                IPO Stock Analysis
+              </h1>
+              <p className="text-lg text-gray-600">
+                Track and analyze upcoming IPOs from US and Hong Kong markets
+              </p>
+            </div>
+          </div>
         </div>
 
         <div className="mb-6">
@@ -83,6 +90,11 @@ export default function Home() {
             <StockListAnalyticsStyle stocks={stocks} onStockDeleted={handleStockDeleted} />
           </div>
         )}
+
+        {/* UV统计放在页面底部 */}
+        <div className="mt-12 pt-8 border-t border-gray-200">
+          <UvStatsDisplay />
+        </div>
       </div>
     </div>
   )
