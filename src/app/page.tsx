@@ -2,8 +2,10 @@
 
 import { useEffect, useState } from 'react'
 import { IpoStock } from '@/types/ipo'
-import StockList from '@/components/StockList'
+import StockListAnalyticsStyle from '@/components/StockListAnalyticsStyle'
 import AddStockForm from '@/components/AddStockForm'
+import MarketNews from '@/components/MarketNews'
+import MarketHolidays from '@/components/MarketHolidays'
 import { Plus } from 'lucide-react'
 
 export default function Home() {
@@ -73,7 +75,13 @@ export default function Home() {
             <p className="mt-4 text-gray-600">Loading IPO stocks...</p>
           </div>
         ) : (
-          <StockList stocks={stocks} onStockDeleted={handleStockDeleted} />
+          <div className="space-y-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <MarketNews limit={1} />
+              <MarketHolidays compact={true} limit={3} />
+            </div>
+            <StockListAnalyticsStyle stocks={stocks} onStockDeleted={handleStockDeleted} />
+          </div>
         )}
       </div>
     </div>
