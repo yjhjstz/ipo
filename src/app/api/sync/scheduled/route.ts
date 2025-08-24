@@ -36,7 +36,7 @@ export async function POST(request: NextRequest) {
       { 
         success: false, 
         error: 'Scheduled sync failed',
-        details: error.message,
+        details: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString()
       }, 
       { status: 500 }

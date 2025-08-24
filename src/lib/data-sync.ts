@@ -77,13 +77,13 @@ export class IpoDataSyncService {
           else result.skipped++
           
         } catch (error) {
-          result.errors.push(`Error processing ${ipoData.symbol || 'unknown'}: ${error.message}`)
+          result.errors.push(`Error processing ${ipoData.symbol || 'unknown'}: ${error instanceof Error ? error.message : String(error)}`)
         }
       }
 
       result.success = true
     } catch (error) {
-      result.errors.push(`US IPO sync failed: ${error.message}`)
+      result.errors.push(`US IPO sync failed: ${error instanceof Error ? error.message : String(error)}`)
     }
 
     return result
@@ -161,8 +161,8 @@ export class IpoDataSyncService {
       if (existing[field] !== newData[field]) {
         // Handle date comparison
         if (field === 'ipoDate') {
-          const existingDate = existing[field]?.getTime()
-          const newDate = newData[field] ? new Date(newData[field]).getTime() : null
+          const existingDate = (existing as Record<string, unknown>)[field] instanceof Date ? ((existing as Record<string, unknown>)[field] as Date).getTime() : null
+          const newDate = newData[field] ? new Date(newData[field] as string).getTime() : null
           if (existingDate !== newDate) return true
         } else {
           return true

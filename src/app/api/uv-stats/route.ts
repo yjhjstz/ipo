@@ -76,7 +76,7 @@ export async function POST(request: NextRequest) {
     } catch (dbError) {
       console.error('Database error in POST:', dbError)
       return NextResponse.json(
-        { error: 'Database error', details: dbError.message },
+        { error: 'Database error', details: dbError instanceof Error ? dbError.message : String(dbError) },
         { status: 500 }
       )
     }
@@ -84,7 +84,7 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Error recording UV:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }
@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Error fetching UV stats:', error)
     return NextResponse.json(
-      { error: 'Internal server error', details: error.message },
+      { error: 'Internal server error', details: error instanceof Error ? error.message : String(error) },
       { status: 500 }
     )
   }

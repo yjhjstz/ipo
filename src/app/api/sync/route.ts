@@ -46,7 +46,7 @@ export async function POST() {
       { 
         success: false,
         error: 'Data synchronization failed', 
-        details: error.message 
+        details: error instanceof Error ? error.message : String(error) 
       }, 
       { status: 500 }
     )

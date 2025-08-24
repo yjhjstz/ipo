@@ -1,5 +1,4 @@
 // External API integrations for IPO data
-import { IpoStatus, Market } from '@/types/ipo'
 
 // Finnhub API types
 export interface FinnhubIpoResponse {
@@ -54,12 +53,12 @@ export class IpoDataTransformer {
     return {
       symbol: finnhubData.symbol,
       companyName: finnhubData.name,
-      market: 'US' as Market,
+      market: 'US' as const,
       expectedPrice: this.parsePriceString(finnhubData.price),
       priceRange: finnhubData.price,
       sharesOffered: finnhubData.numberOfShares,
       ipoDate: new Date(finnhubData.date),
-      status: this.mapFinnhubStatus(finnhubData.status),
+      status: this.mapFinnhubStatus(finnhubData.status) as 'UPCOMING' | 'PRICING' | 'LISTED' | 'WITHDRAWN' | 'POSTPONED',
       underwriters: [], // Finnhub doesn't provide underwriter info
       // Additional fields can be mapped as needed
     }
@@ -86,7 +85,7 @@ export class IpoDataTransformer {
     return undefined
   }
 
-  private static mapFinnhubStatus(finnhubStatus: string): IpoStatus {
+  private static mapFinnhubStatus(finnhubStatus: string): string {
     switch (finnhubStatus?.toLowerCase()) {
       case 'filed': return 'UPCOMING'
       case 'priced': return 'PRICING'

@@ -3,11 +3,12 @@ import { prisma } from '@/lib/db'
 
 export async function GET(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const stock = await prisma.ipoStock.findUnique({
-      where: { id: params.id }
+      where: { id }
     })
     
     if (!stock) {
@@ -22,13 +23,14 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     const data = await request.json()
     
     const stock = await prisma.ipoStock.update({
-      where: { id: params.id },
+      where: { id },
       data: {
         ...data,
         ipoDate: data.ipoDate ? new Date(data.ipoDate) : null,
@@ -43,11 +45,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params
     await prisma.ipoStock.delete({
-      where: { id: params.id }
+      where: { id }
     })
     
     return NextResponse.json({ message: 'Stock deleted successfully' })

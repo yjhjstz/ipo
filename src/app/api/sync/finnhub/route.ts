@@ -19,7 +19,7 @@ export async function POST(_request: NextRequest) {
       { 
         success: false,
         error: 'Finnhub synchronization failed', 
-        details: error.message 
+        details: error instanceof Error ? error.message : String(error) 
       }, 
       { status: 500 }
     )

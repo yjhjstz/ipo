@@ -9,10 +9,26 @@ interface StockListAnalyticsStyleProps {
   onStockDeleted: (id: string) => void
 }
 
+interface MetricsData {
+  symbol?: string
+  marketCap?: number
+  revenue?: number
+  netIncome?: number
+  employees?: number
+  sector?: string
+  industry?: string
+  metrics?: {
+    metric: {
+      [key: string]: number
+    }
+  }
+  [key: string]: unknown
+}
+
 export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: StockListAnalyticsStyleProps) {
   const [selectedStock, setSelectedStock] = useState<string | null>(null)
   const [showMetrics, setShowMetrics] = useState(false)
-  const [metricsData, setMetricsData] = useState<any>(null)
+  const [metricsData, setMetricsData] = useState<MetricsData | null>(null)
   const [loadingMetrics, setLoadingMetrics] = useState(false)
   
   // Show all stocks including PRICING status
@@ -43,7 +59,7 @@ export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: Stoc
     try {
       const response = await fetch(`/api/stock/metric?symbol=${symbol}&metric=all`)
       if (response.ok) {
-        const data = await response.json()
+        const data: MetricsData = await response.json()
         setMetricsData(data)
       } else {
         alert('Failed to fetch financial metrics')
@@ -284,7 +300,7 @@ export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: Stoc
                     <h4 className="text-lg font-semibold text-gray-700 mb-2">暂无 IPO 股票</h4>
                     <p className="text-gray-500">还没有添加任何 IPO 股票信息</p>
                     <div className="mt-4 px-4 py-2 bg-blue-50 text-blue-600 text-sm rounded-lg">
-                      💡 提示：点击上方"Add New IPO Stock"按钮添加股票
+                      💡 提示：点击上方&ldquo;Add New IPO Stock&rdquo;按钮添加股票
                     </div>
                   </div>
                 </td>
@@ -399,13 +415,13 @@ export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: Stoc
                       {metricsData.metrics.metric["52WeekHigh"] && (
                         <div className="bg-white rounded p-3 text-center">
                           <p className="text-sm text-gray-600">52周最高</p>
-                          <p className="text-xl font-bold text-red-600">${metricsData.metrics.metric["52WeekHigh"].toFixed(2)}</p>
+                          <p className="text-xl font-bold text-red-600">${metricsData.metrics.metric['52WeekHigh'].toFixed(2)}</p>
                         </div>
                       )}
                       {metricsData.metrics.metric["52WeekLow"] && (
                         <div className="bg-white rounded p-3 text-center">
                           <p className="text-sm text-gray-600">52周最低</p>
-                          <p className="text-xl font-bold text-green-600">${metricsData.metrics.metric["52WeekLow"].toFixed(2)}</p>
+                          <p className="text-xl font-bold text-green-600">${metricsData.metrics.metric['52WeekLow'].toFixed(2)}</p>
                         </div>
                       )}
                       {metricsData.metrics.metric["52WeekPriceReturnDaily"] && (

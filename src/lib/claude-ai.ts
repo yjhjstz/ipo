@@ -42,7 +42,7 @@ export class ClaudeAIService {
     console.log('Claude AI service initialized with base URL:', process.env.ANTHROPIC_BASE_URL || 'default')
   }
 
-  async analyzeStock(stockData: any): Promise<StockAnalysis> {
+  async analyzeStock(stockData: Record<string, unknown>): Promise<StockAnalysis> {
     const prompt = `
 分析以下IPO股票数据，提供详细的投资分析：
 
@@ -53,7 +53,7 @@ export class ClaudeAIService {
 - 预期价格：${stockData.expectedPrice ? `$${stockData.expectedPrice}` : '待定'}
 - 价格区间：${stockData.priceRange || '待定'}
 - 发行股数：${stockData.sharesOffered || '待定'}
-- IPO日期：${stockData.ipoDate ? new Date(stockData.ipoDate).toLocaleDateString('zh-CN') : '待定'}
+- IPO日期：${stockData.ipoDate && typeof stockData.ipoDate === 'string' ? new Date(stockData.ipoDate).toLocaleDateString('zh-CN') : '待定'}
 - 状态：${stockData.status}
 - 行业：${stockData.sector || '未知'}
 
@@ -98,8 +98,8 @@ export class ClaudeAIService {
           const analysisData = JSON.parse(content.text)
           
           return {
-            symbol: stockData.symbol,
-            companyName: stockData.companyName,
+            symbol: stockData.symbol as string,
+            companyName: stockData.companyName as string,
             analysis: analysisData
           }
         } catch (parseError) {
@@ -111,16 +111,16 @@ export class ClaudeAIService {
       throw new Error('Invalid response format')
     } catch (error) {
       console.error('Claude AI analysis error details:', {
-        name: error.name,
-        message: error.message,
-        stack: error.stack,
-        cause: error.cause
+        name: error instanceof Error ? error.name : 'Unknown',
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        cause: error instanceof Error ? error.cause : undefined
       })
       
       // Fallback analysis
       return {
-        symbol: stockData.symbol,
-        companyName: stockData.companyName,
+        symbol: stockData.symbol as string,
+        companyName: stockData.companyName as string,
         analysis: {
           summary: '由于技术原因，暂时无法生成详细分析',
           pros: ['待分析'],
@@ -129,18 +129,17 @@ export class ClaudeAIService {
           recommendation: 'Watch' as const,
           keyMetrics: {
             marketCap: '待分析',
-            expectedGrowth: '待分析',
-            valuation: '待分析'
+            expectedGrowth: '待分析'
           }
         }
       }
     }
   }
 
-  async analyzeMarket(ipoData: any[]): Promise<MarketAnalysis> {
+  async analyzeMarket(ipoData: Record<string, unknown>[]): Promise<MarketAnalysis> {
     const upcomingCount = ipoData.filter(stock => stock.status === 'UPCOMING').length
     const pricingCount = ipoData.filter(stock => stock.status === 'PRICING').length
-    const avgPrice = ipoData.reduce((sum, stock) => sum + (stock.expectedPrice || 0), 0) / ipoData.length
+    const avgPrice = ipoData.reduce((sum, stock) => sum + (typeof stock.expectedPrice === 'number' ? stock.expectedPrice : 0), 0) / ipoData.length
 
     const prompt = `
 基于以下IPO市场数据，提供市场趋势分析：
