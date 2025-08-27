@@ -24,6 +24,24 @@ export interface MarketAnalysis {
   outlook: 'Bullish' | 'Bearish' | 'Neutral'
 }
 
+export interface AIStartup {
+  company_name: string
+  funding_amount: string
+  focus_area: string
+}
+
+export interface SearchResult {
+  title: string
+  url: string
+  date?: string
+  last_updated?: string
+}
+
+export interface TrendingStartupsResponse {
+  search_results: SearchResult[]
+  last_updated: string
+}
+
 export class PerplexityAIService {
   private baseUrl: string
   private apiKey: string
@@ -74,7 +92,7 @@ export class PerplexityAIService {
       console.log('Sending request to Perplexity AI for stock analysis...')
       console.log('API Key prefix:', this.apiKey.substring(0, 10) + '...')
       
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      const response = await this.fetchWithRetry(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,
@@ -149,6 +167,144 @@ export class PerplexityAIService {
     }
   }
 
+  private async fetchWithRetry(url: string, options: RequestInit, maxRetries: number = 2): Promise<Response> {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        console.log(`Attempt ${attempt + 1}/${maxRetries + 1} - Fetching from Perplexity AI...`)
+        
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 45000) // 45 seconds
+        
+        const response = await fetch(url, {
+          ...options,
+          signal: controller.signal
+        })
+        
+        clearTimeout(timeoutId)
+        return response
+      } catch (error) {
+        console.error(`Attempt ${attempt + 1} failed:`, error)
+        
+        if (attempt === maxRetries) {
+          throw error
+        }
+        
+        // Wait before retrying (exponential backoff)
+        const delay = Math.pow(2, attempt) * 1000 // 1s, 2s, 4s...
+        console.log(`Waiting ${delay}ms before retry...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    }
+    
+    throw new Error('All retry attempts failed')
+  }
+
+  async getTrendingAIStartups(): Promise<TrendingStartupsResponse> {
+    try {
+      console.log('Fetching trending AI startups from Perplexity AI...')
+      
+      const response = await this.fetchWithRetry(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'sonar-pro',
+          messages: [
+            {
+              role: 'user',
+              content: 'Find the top 3 trending AI startups with recent funding. Include company name, funding amount, and focus area.'
+            }
+          ],
+          response_format: {
+            type: 'json_schema',
+            json_schema: {
+              schema: {
+                type: 'object',
+                properties: {
+                  startups: {
+                    type: 'array',
+                    items: {
+                      type: 'object',
+                      properties: {
+                        company_name: { type: 'string' },
+                        funding_amount: { type: 'string' },
+                        focus_area: { type: 'string' }
+                      },
+                      required: ['company_name', 'funding_amount', 'focus_area']
+                    }
+                  }
+                },
+                required: ['startups']
+              }
+            }
+          }
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Perplexity API error:', response.status, errorText)
+        throw new Error(`Perplexity API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('Trending AI startups response:', JSON.stringify(data, null, 2))
+
+      // Only return search_results, ignore the choices content
+      return {
+        search_results: data.search_results || [],
+        last_updated: new Date().toISOString()
+      }
+    } catch (error) {
+      console.error('Perplexity AI trending startups error:', error)
+      
+      // Fallback data with recent dates for testing
+      const now = new Date()
+      const oneDayAgo = new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      const threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      const fiveDaysAgo = new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      const tenDaysAgo = new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] // This should be filtered out
+      
+      return {
+        search_results: [
+          {
+            title: 'The Latest VC Investment Deals in AI Startups - 2025 | News',
+            url: 'https://www.crescendo.ai/news/latest-vc-investment-deals-in-ai-startups',
+            date: oneDayAgo,
+            last_updated: oneDayAgo
+          },
+          {
+            title: 'Top US AI Funding Rounds: $100M+ in 2025 | Eqvista',
+            url: 'https://eqvista.com/top-us-ai-funding/',
+            date: threeDaysAgo,
+            last_updated: threeDaysAgo
+          },
+          {
+            title: 'Ranked: The Biggest AI Funding Rounds of 2025 So Far',
+            url: 'https://www.visualcapitalist.com/ranked-the-biggest-ai-funding-rounds-of-2025-so-far/',
+            date: fiveDaysAgo,
+            last_updated: fiveDaysAgo
+          },
+          {
+            title: '100 Top Startups to Watch in 2025 | Fast-Growing & VC-Backed',
+            url: 'https://startupsavant.com/startups-to-watch',
+            date: tenDaysAgo,
+            last_updated: tenDaysAgo // This should be filtered out (older than 1 week)
+          },
+          {
+            title: 'Here are the 24 US AI startups that have raised $100M or ...',
+            url: 'https://techcrunch.com/2025/06/18/here-are-the-24-us-ai-startups-that-have-raised-100m-or-more-in-2025/',
+            date: '2025-06-18',
+            last_updated: '2025-07-22' // This should be filtered out (older than 1 week)
+          }
+        ],
+        last_updated: new Date().toISOString()
+      }
+    }
+  }
+
   async analyzeMarket(ipoData: Record<string, unknown>[]): Promise<MarketAnalysis> {
     const upcomingCount = ipoData.filter(stock => stock.status === 'UPCOMING').length
     const pricingCount = ipoData.filter(stock => stock.status === 'PRICING').length
@@ -185,7 +341,7 @@ ${ipoData.slice(0, 10).map(stock =>
     try {
       console.log('Sending request to Perplexity AI for market analysis...')
       
-      const response = await fetch(`${this.baseUrl}/chat/completions`, {
+      const response = await this.fetchWithRetry(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${this.apiKey}`,

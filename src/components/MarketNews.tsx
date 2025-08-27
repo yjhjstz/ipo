@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { NewspaperIcon, ExternalLinkIcon, ClockIcon } from 'lucide-react'
+import { NewspaperIcon, ExternalLinkIcon, ClockIcon, RefreshCwIcon } from 'lucide-react'
 
 interface NewsItem {
   id: number
@@ -89,9 +89,9 @@ export default function MarketNews({ limit = 5, showFullList = false }: MarketNe
           <p>{error}</p>
           <button
             onClick={fetchNews}
-            className="mt-2 text-sm text-blue-600 hover:text-blue-800"
+            className="mt-2 text-sm text-blue-600 hover:text-blue-800 flex items-center justify-center mx-auto"
           >
-            Try again
+            <RefreshCwIcon className="h-4 w-4" />
           </button>
         </div>
       </div>
@@ -108,9 +108,10 @@ export default function MarketNews({ limit = 5, showFullList = false }: MarketNe
           </div>
           <button
             onClick={fetchNews}
-            className="text-sm text-blue-600 hover:text-blue-800"
+            className="text-sm text-blue-600 hover:text-blue-800 flex items-center"
+            disabled={loading}
           >
-            Refresh
+            <RefreshCwIcon className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
