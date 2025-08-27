@@ -70,3 +70,58 @@ enum IpoStatus {
   WITHDRAWN
   POSTPONED
 }
+
+model McpApp {
+  id              String      @id @default(cuid())
+  name            String
+  fullName        String      // owner/repo format
+  description     String?
+  category        McpCategory @default(OTHER)
+  githubUrl       String      @unique
+  homepage        String?
+  author          String
+  stars           Int         @default(0)
+  forks           Int         @default(0)
+  issues          Int         @default(0)
+  lastUpdated     DateTime?
+  createdAt       DateTime
+  language        String?
+  license         String?
+  topics          String[]    // GitHub topics/tags
+  readme          String?
+  isOfficial      Boolean     @default(false)
+  popularityScore Float       @default(0)
+  status          McpStatus   @default(ACTIVE)
+  syncedAt        DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  @@index([category, popularityScore])
+  @@index([stars])
+  @@index([popularityScore])
+  @@map("mcp_apps")
+}
+
+enum McpCategory {
+  DEVELOPMENT
+  PRODUCTIVITY  
+  DATA_ANALYSIS
+  CLOUD_SERVICES
+  AI_ML
+  AUTOMATION
+  SECURITY
+  COMMUNICATION
+  CREATIVE
+  FINANCE
+  ENTERPRISE
+  TESTING
+  DATABASE
+  WEB_SCRAPING
+  OTHER
+}
+
+enum McpStatus {
+  ACTIVE
+  DEPRECATED
+  EXPERIMENTAL
+  ARCHIVED
+}
