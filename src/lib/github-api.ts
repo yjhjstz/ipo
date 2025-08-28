@@ -156,20 +156,29 @@ class GitHubAPIClient {
   // 构建不同的搜索查询
   static buildMcpSearchQueries(): string[] {
     const baseQueries = [
-      'mcp-server in:name,description',
+      // 更严格的MCP相关搜索
+      '"mcp-server" in:name,description',
       '"model context protocol" in:name,description,readme',
-      'mcp server in:name,description',
-      'anthropic mcp in:name,description',
+      '"mcp server" in:name,description', 
+      'mcp-servers in:name,description',
+      'mcp-client in:name,description',
+      'anthropic mcp in:name,description,readme',
       'topic:mcp',
       'topic:model-context-protocol',
+      'topic:mcp-server',
+      'topic:anthropic-mcp',
+      // 添加Anthropic官方仓库
+      'org:modelcontextprotocol',
+      'user:modelcontextprotocol',
     ];
 
-    // 添加时间和质量过滤器
-    const timeFilter = 'created:>2024-01-01';
-    const qualityFilter = 'stars:>5';
+    // 更严格的时间和质量过滤器
+    const timeFilter = 'created:>2024-01-01'; // 保持原有的2024年过滤
+    const qualityFilter = 'stars:>5'; // 保持原有的5星要求
+    const typeFilter = 'is:public'; // 只要公开仓库
     
     return baseQueries.map(query => 
-      `${query} ${timeFilter} ${qualityFilter} sort:updated-desc`
+      `${query} ${timeFilter} ${qualityFilter} ${typeFilter} sort:updated-desc`
     );
   }
 }
