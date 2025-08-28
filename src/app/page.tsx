@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Search, Filter, ExternalLink, Star, GitFork, AlertCircle, RefreshCw, Github } from 'lucide-react'
 
 interface McpApp {
@@ -71,7 +71,7 @@ export default function Home() {
   const [pagination, setPagination] = useState<PaginationData | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   
-  const fetchApps = async (page = 1) => {
+  const fetchApps = useCallback(async (page = 1) => {
     setLoading(true)
     try {
       const params = new URLSearchParams({
@@ -96,7 +96,7 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [sortBy, sortOrder, selectedCategory, searchTerm])
 
   const syncMcpData = async () => {
     setSyncing(true)
@@ -121,7 +121,7 @@ export default function Home() {
 
   useEffect(() => {
     fetchApps(1)
-  }, [searchTerm, selectedCategory, sortBy, sortOrder])
+  }, [fetchApps])
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()

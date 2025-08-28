@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextResponse } from 'next/server'
 import { createSyncService } from '@/lib/data-sync'
 
 // POST /api/sync/finnhub - Sync only US IPO data from Finnhub
-export async function POST(_request: NextRequest) {
+export async function POST() {
   try {
     const syncService = createSyncService()
     const result = await syncService.syncUsIpos()

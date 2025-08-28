@@ -114,7 +114,7 @@ export class GitHubAIService {
         let analysisData
         try {
           analysisData = JSON.parse(content)
-        } catch (parseError) {
+        } catch {
           // 如果直接解析失败，尝试提取JSON部分
           console.log('Direct JSON parse failed, trying to extract JSON...')
           const jsonMatch = content.match(/\{[\s\S]*\}/)
@@ -130,9 +130,8 @@ export class GitHubAIService {
           companyName: stockData.companyName as string,
           analysis: analysisData
         }
-      } catch (parseError) {
+      } catch {
         console.error('Failed to parse GitHub AI response:', content)
-        console.error('Parse error:', parseError)
         throw new Error('Invalid JSON response from GitHub AI')
       }
     } catch (error) {
@@ -236,7 +235,7 @@ ${ipoData.slice(0, 10).map(stock =>
         let analysisData
         try {
           analysisData = JSON.parse(content)
-        } catch (parseError) {
+        } catch {
           // 如果直接解析失败，尝试提取JSON部分
           console.log('Direct JSON parse failed, trying to extract JSON...')
           const jsonMatch = content.match(/\{[\s\S]*\}/)
@@ -248,10 +247,9 @@ ${ipoData.slice(0, 10).map(stock =>
         }
 
         return analysisData
-      } catch (parseError) {
+      } catch {
         console.error('Failed to parse GitHub AI market response:', content)
-        console.error('Parse error:', parseError)
-        throw parseError
+        throw new Error('Invalid JSON response from GitHub AI')
       }
     } catch (error) {
       console.error('GitHub AI market analysis error:', error)

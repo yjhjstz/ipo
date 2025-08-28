@@ -2,15 +2,14 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, Home, Building2, RefreshCw, Zap } from 'lucide-react'
+import { BarChart3, Home, Building2, Zap } from 'lucide-react'
 
 export default function Navigation() {
   const pathname = usePathname()
 
   const navItems = [
     { href: '/', label: 'MCP Apps', icon: Home },
-    { href: '/analytics', label: 'Analytics', icon: BarChart3 },
-    { href: '/sync', label: 'Data Sync', icon: RefreshCw },
+    { href: '/analytics', label: 'IPO Analytics Dashboard', icon: BarChart3 },
     { href: '/mcp', label: 'IPO Stocks', icon: Zap },
   ]
 

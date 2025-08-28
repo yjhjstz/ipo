@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { CalendarDaysIcon, MapPinIcon, ClockIcon } from 'lucide-react'
 
 interface MarketHoliday {
@@ -32,11 +32,7 @@ export default function MarketHolidays({
   const [error, setError] = useState<string | null>(null)
   const [selectedExchange, setSelectedExchange] = useState(exchange)
 
-  useEffect(() => {
-    fetchHolidays()
-  }, [selectedExchange])
-
-  const fetchHolidays = async () => {
+  const fetchHolidays = useCallback(async () => {
     setLoading(true)
     setError(null)
     
@@ -51,7 +47,11 @@ export default function MarketHolidays({
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedExchange])
+
+  useEffect(() => {
+    fetchHolidays()
+  }, [fetchHolidays])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)

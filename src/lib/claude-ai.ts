@@ -102,7 +102,7 @@ export class ClaudeAIService {
             companyName: stockData.companyName as string,
             analysis: analysisData
           }
-        } catch (parseError) {
+        } catch {
           console.error('Failed to parse Claude response:', content.text)
           throw new Error('Invalid JSON response from Claude')
         }

@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { McpDataSync } from '@/lib/mcp-data-sync';
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const githubToken = process.env.GITHUB_TOKEN;
     

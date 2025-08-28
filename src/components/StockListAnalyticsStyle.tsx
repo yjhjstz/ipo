@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { IpoStock } from '@/types/ipo'
-import { Calendar, TrendingUp, Building2, DollarSign, Globe, MoreHorizontal, Edit, Trash2, BarChart3 } from 'lucide-react'
+import { TrendingUp, Building2, DollarSign, Trash2, BarChart3 } from 'lucide-react'
 
 interface StockListAnalyticsStyleProps {
   stocks: IpoStock[]
@@ -26,7 +26,6 @@ interface MetricsData {
 }
 
 export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: StockListAnalyticsStyleProps) {
-  const [selectedStock, setSelectedStock] = useState<string | null>(null)
   const [showMetrics, setShowMetrics] = useState(false)
   const [metricsData, setMetricsData] = useState<MetricsData | null>(null)
   const [loadingMetrics, setLoadingMetrics] = useState(false)
@@ -46,7 +45,7 @@ export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: Stoc
         } else {
           alert('Failed to delete stock')
         }
-      } catch (error) {
+      } catch {
         alert('Error deleting stock')
       }
     }
@@ -64,8 +63,8 @@ export default function StockListAnalyticsStyle({ stocks, onStockDeleted }: Stoc
       } else {
         alert('Failed to fetch financial metrics')
       }
-    } catch (error) {
-      console.error('Error fetching financial metrics:', error)
+    } catch {
+      console.error('Error fetching financial metrics')
       alert('Error fetching financial metrics')
     } finally {
       setLoadingMetrics(false)

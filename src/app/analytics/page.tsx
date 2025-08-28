@@ -1,8 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer, LineChart, Line, Area, AreaChart } from 'recharts'
-import { TrendingUp, DollarSign, Building, Calendar, Activity, Target, Brain, Search, Sparkles, Zap } from 'lucide-react'
+import Link from 'next/link'
+import { TrendingUp, DollarSign, Building, Calendar, Activity, Target, Brain, Search, Sparkles, Zap, RefreshCw } from 'lucide-react'
 
 interface MarketAnalysis {
   marketOverview: string
@@ -56,15 +56,6 @@ interface AnalyticsData {
     _count: { id: number }
   }>
 }
-
-const STATUS_COLORS = {
-  'UPCOMING': '#3B82F6',
-  'PRICING': '#F59E0B', 
-  'LISTED': '#10B981',
-  'POSTPONED': '#EF4444'
-}
-
-const CHART_COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#F97316']
 
 export default function Analytics() {
   const [data, setData] = useState<AnalyticsData | null>(null)
@@ -154,23 +145,6 @@ export default function Analytics() {
     )
   }
 
-  const statusData = data.stats.reduce((acc: Array<{ status: string; count: number }>, curr: { status: string; market: string; _count: { id: number } }) => {
-    const existing = acc.find(item => item.status === curr.status)
-    if (existing) {
-      existing.count += curr._count.id
-    } else {
-      acc.push({ status: curr.status, count: curr._count.id })
-    }
-    return acc
-  }, [] as Array<{ status: string; count: number }>)
-
-  const marketData = data.totalsByMarket.map(item => ({
-    market: 'United States 🇺🇸',
-    count: item._count.id,
-    avgPrice: item._avg.expectedPrice || 0,
-    totalShares: item._sum.sharesOffered || 0
-  }))
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -180,6 +154,13 @@ export default function Analytics() {
               <Sparkles className="h-6 w-6 text-slate-700" />
             </div>
             IPO Analytics Dashboard
+            <Link 
+              href="/sync" 
+              className="ml-6 inline-flex items-center px-4 py-2 bg-gradient-to-r from-emerald-500 to-green-600 text-white text-sm font-semibold rounded-lg shadow-md hover:from-emerald-600 hover:to-green-700 transition-all duration-200 hover:shadow-lg"
+            >
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Data Sync
+            </Link>
           </h1>
           <div className="flex items-center justify-between">
             <p className="text-lg text-slate-600 font-medium">
@@ -460,119 +441,11 @@ export default function Analytics() {
               <div className="ml-4">
                 <p className="text-sm font-medium text-purple-100">Market Activity</p>
                 <p className="text-3xl font-bold text-slate-700">
-                  {statusData.find(s => s.status === 'PRICING')?.count || 0}
+                  {data.stats.filter(s => s.status === 'PRICING').reduce((sum, item) => sum + item._count.id, 0)}
                 </p>
                 <p className="text-xs text-purple-100 mt-1">Currently pricing</p>
               </div>
             </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-          <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-800">IPOs by Status</h3>
-              <div className="text-sm text-slate-500 font-medium">Distribution</div>
-            </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={statusData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={90}
-                  fill="#8884d8"
-                  dataKey="count"
-                  nameKey="status"
-                >
-                  {statusData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={STATUS_COLORS[entry.status as keyof typeof STATUS_COLORS] || CHART_COLORS[index % CHART_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-800">Market Distribution</h3>
-              <div className="text-sm text-slate-500 font-medium">By Region</div>
-            </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={marketData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.3} />
-                <XAxis 
-                  dataKey="market" 
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                  axisLine={{ stroke: '#cbd5e1' }}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                  axisLine={{ stroke: '#cbd5e1' }}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                />
-                <Bar dataKey="count" fill="url(#blueGradient)" radius={[6, 6, 0, 0]} />
-                <defs>
-                  <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#3B82F6" />
-                    <stop offset="100%" stopColor="#1E40AF" />
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-all duration-300 border border-gray-200">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-slate-800">Price Analysis</h3>
-              <div className="text-sm text-slate-500 font-medium">Average Expected Price</div>
-            </div>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart data={marketData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" opacity={0.3} />
-                <XAxis 
-                  dataKey="market" 
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                  axisLine={{ stroke: '#cbd5e1' }}
-                />
-                <YAxis 
-                  tick={{ fontSize: 12, fill: '#64748b' }}
-                  axisLine={{ stroke: '#cbd5e1' }}
-                />
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    border: 'none',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                  }}
-                  formatter={(value: number) => [`$${value?.toFixed(2)}`, 'Avg Price']}
-                />
-                <Bar dataKey="avgPrice" fill="url(#greenGradient)" radius={[6, 6, 0, 0]} />
-                <defs>
-                  <linearGradient id="greenGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor="#10B981" />
-                    <stop offset="100%" stopColor="#047857" />
-                  </linearGradient>
-                </defs>
-              </BarChart>
-            </ResponsiveContainer>
           </div>
         </div>
 

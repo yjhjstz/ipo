@@ -16,7 +16,7 @@ export async function GET(
     }
     
     return NextResponse.json(stock)
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch stock' }, { status: 500 })
   }
 }
@@ -38,7 +38,7 @@ export async function PUT(
     })
     
     return NextResponse.json(stock)
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to update stock' }, { status: 500 })
   }
 }
@@ -54,7 +54,7 @@ export async function DELETE(
     })
     
     return NextResponse.json({ message: 'Stock deleted successfully' })
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to delete stock' }, { status: 500 })
   }
 }

@@ -23,7 +23,7 @@ export async function GET() {
       ]
     })
     return NextResponse.json(stocks)
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch stocks' }, { status: 500 })
   }
 }
@@ -40,7 +40,7 @@ export async function POST(request: NextRequest) {
     })
     
     return NextResponse.json(stock, { status: 201 })
-  } catch (_error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create stock' }, { status: 500 })
   }
 }

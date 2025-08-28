@@ -134,7 +134,7 @@ export class PerplexityAIService {
             companyName: stockData.companyName as string,
             analysis: analysisData
           }
-        } catch (parseError) {
+        } catch {
           console.error('Failed to parse Perplexity response:', content)
           throw new Error('Invalid JSON response from Perplexity')
         }
@@ -377,7 +377,7 @@ ${ipoData.slice(0, 10).map(stock =>
           const jsonMatch = content.match(/\{[\s\S]*\}/)
           const jsonString = jsonMatch ? jsonMatch[0] : content
           return JSON.parse(jsonString)
-        } catch (parseError) {
+        } catch {
           console.error('Failed to parse Perplexity market response:', content)
           throw new Error('Invalid JSON response from Perplexity')
         }

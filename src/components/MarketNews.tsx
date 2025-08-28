@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { NewspaperIcon, ExternalLinkIcon, ClockIcon, RefreshCwIcon } from 'lucide-react'
+import Image from 'next/image'
 
 interface NewsItem {
   id: number
@@ -119,15 +120,17 @@ export default function MarketNews({ limit = 5, showFullList = false }: MarketNe
       <div className="p-0">
         {displayedNews.length > 0 ? (
           <div className="space-y-0">
-            {displayedNews.map((item, index) => (
+            {displayedNews.map((item) => (
               <div key={item.id} className="p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
                 <div className="flex space-x-4">
                   {item.image && (
                     <div className="flex-shrink-0">
-                      <img
+                      <Image
                         src={item.image}
-                        alt=""
-                        className="w-16 h-16 object-cover rounded-lg"
+                        alt={item.headline}
+                        width={64}
+                        height={64}
+                        className="object-cover rounded-lg"
                         onError={(e) => {
                           e.currentTarget.style.display = 'none'
                         }}

@@ -14,8 +14,6 @@ function getTodayDate() {
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
-    const { page = '/' } = body
     
     // 获取访客信息
     const ip = request.headers.get('x-forwarded-for') || 
@@ -90,7 +88,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     console.log('Starting UV stats GET request')
     
