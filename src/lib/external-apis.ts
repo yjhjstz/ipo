@@ -50,6 +50,8 @@ export class FinnhubApiService {
 // Data transformation utilities
 export class IpoDataTransformer {
   static finnhubToIpoStock(finnhubData: FinnhubIpoResponse['ipoCalendar'][0]) {
+    const ipoDate = new Date(finnhubData.date);
+    
     return {
       symbol: finnhubData.symbol,
       companyName: finnhubData.name,
@@ -57,8 +59,8 @@ export class IpoDataTransformer {
       expectedPrice: this.parsePriceString(finnhubData.price),
       priceRange: finnhubData.price,
       sharesOffered: finnhubData.numberOfShares,
-      ipoDate: new Date(finnhubData.date),
-      status: this.mapFinnhubStatus(finnhubData.status) as 'UPCOMING' | 'PRICING' | 'LISTED' | 'WITHDRAWN' | 'POSTPONED',
+      ipoDate: ipoDate,
+      status: this.mapFinnhubStatus(finnhubData.status, ipoDate) as 'UPCOMING' | 'PRICING' | 'LISTED' | 'WITHDRAWN' | 'POSTPONED',
       underwriters: [], // Finnhub doesn't provide underwriter info
       // Additional fields can be mapped as needed
     }
@@ -85,9 +87,28 @@ export class IpoDataTransformer {
     return undefined
   }
 
-  private static mapFinnhubStatus(finnhubStatus: string): string {
+  private static mapFinnhubStatus(finnhubStatus: string, ipoDate: Date): string {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to compare dates only
+    const ipoDayOnly = new Date(ipoDate);
+    ipoDayOnly.setHours(0, 0, 0, 0);
+
+    // If IPO date is in the past, determine status based on Finnhub status
+    if (ipoDayOnly < today) {
+      switch (finnhubStatus?.toLowerCase()) {
+        case 'priced': return 'LISTED'  // If it was priced and date passed, it's likely listed
+        case 'filed': return 'LISTED'   // If it was filed and date passed, it's likely listed
+        case 'expected': return 'LISTED' // If it was expected and date passed, it's likely listed
+        case 'withdrawn': return 'WITHDRAWN'
+        case 'postponed': return 'POSTPONED'
+        default: return 'LISTED'
+      }
+    }
+
+    // If IPO date is today or future, use current status
     switch (finnhubStatus?.toLowerCase()) {
       case 'filed': return 'UPCOMING'
+      case 'expected': return 'UPCOMING'
       case 'priced': return 'PRICING'
       case 'listed': return 'LISTED'
       case 'withdrawn': return 'WITHDRAWN'
