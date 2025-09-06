@@ -102,3 +102,50 @@ enum McpStatus {
   EXPERIMENTAL
   ARCHIVED
 }
+
+model AIAgent {
+  id              String         @id @default(cuid())
+  name            String
+  description     String?
+  category        AIAgentCategory @default(OTHER)
+  website         String?
+  creator         String
+  users           Int            @default(0)
+  rating          Float          @default(0.0)
+  featured        Boolean        @default(false)
+  capabilities    String[]       @default([])
+  tags            String[]       @default([])
+  verified        Boolean        @default(false)
+  pricing         PricingType    @default(FREE)
+  popularityScore Float          @default(0.0)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  lastUpdated     DateTime       @default(now())
+  syncedAt        DateTime       @default(now())
+
+  @@map("ai_agents")
+}
+
+enum AIAgentCategory {
+  PRODUCTIVITY
+  CODING
+  CONTENT
+  RESEARCH
+  CUSTOMER_SERVICE
+  MARKETING
+  EDUCATION
+  FINANCE
+  HEALTHCARE
+  CREATIVE
+  AUTOMATION
+  ANALYTICS
+  COMMUNICATION
+  ENTERTAINMENT
+  OTHER
+}
+
+enum PricingType {
+  FREE
+  FREEMIUM
+  PAID
+}
