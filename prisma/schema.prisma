@@ -35,29 +35,6 @@ model IpoStock {
   @@map("ipo_stocks")
 }
 
-model UvStatistic {
-  id          String   @id @default(cuid())
-  date        DateTime @default(now()) @db.Date
-  uniqueViews Int      @default(0)
-  totalViews  Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@map("uv_statistics")
-}
-
-model VisitorLog {
-  id          String   @id @default(cuid())
-  visitorId   String   // 基于IP+UserAgent生成的唯一标识
-  ipAddress   String?
-  userAgent   String?
-  page        String   @default("/")
-  visitedAt   DateTime @default(now())
-
-  @@index([visitorId, visitedAt])
-  @@map("visitor_logs")
-}
-
 enum Market {
   US
   HK

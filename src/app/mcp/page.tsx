@@ -6,8 +6,6 @@ import StockListAnalyticsStyle from '@/components/StockListAnalyticsStyle'
 import AddStockForm from '@/components/AddStockForm'
 import MarketNews from '@/components/MarketNews'
 import TrendingAIStartups from '@/components/TrendingAIStartups'
-import UvStatsDisplay from '@/components/UvStatsDisplay'
-import UvTracker from '@/components/UvTracker'
 import { Plus } from 'lucide-react'
 
 export default function McpPage() {
@@ -42,7 +40,6 @@ export default function McpPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <UvTracker />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between mb-4">
@@ -91,10 +88,6 @@ export default function McpPage() {
           </div>
         )}
 
-        {/* UV统计放在页面底部 */}
-        <div className="mt-12 pt-8 border-t border-gray-200">
-          <UvStatsDisplay />
-        </div>
       </div>
     </div>
   )
