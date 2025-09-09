@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { Search, Download, FileText, TrendingUp, AlertTriangle } from 'lucide-react'
 import FilingViewer from '@/components/FilingViewer'
+import { searchStocks } from '@/lib/stock-suggestions'
 
 interface Filing {
   id: string
@@ -68,16 +69,87 @@ export default function FinancialsPage() {
   const [loading, setLoading] = useState(false)
   const [analysisStep, setAnalysisStep] = useState('')
   const [error, setError] = useState('')
+  
+  // 联想搜索相关状态
+  const [suggestions, setSuggestions] = useState<Array<{symbol: string, name: string, sector: string}>>([])
+  const [showSuggestions, setShowSuggestions] = useState(false)
+  const [selectedSuggestionIndex, setSelectedSuggestionIndex] = useState(-1)
+  const inputRef = useRef<HTMLInputElement>(null)
+  const suggestionsRef = useRef<HTMLDivElement>(null)
 
-  const searchFilings = async () => {
-    if (!searchTicker.trim()) return
+  // 处理输入变化和联想搜索
+  const handleInputChange = (value: string) => {
+    setSearchTicker(value)
+    
+    if (value.trim().length > 0) {
+      const searchResults = searchStocks(value, 8)
+      setSuggestions(searchResults)
+      setShowSuggestions(searchResults.length > 0)
+      setSelectedSuggestionIndex(-1)
+    } else {
+      setSuggestions([])
+      setShowSuggestions(false)
+    }
+  }
+
+  // 处理键盘导航
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSuggestions) return
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault()
+        setSelectedSuggestionIndex(prev => 
+          prev < suggestions.length - 1 ? prev + 1 : 0
+        )
+        break
+      case 'ArrowUp':
+        e.preventDefault()
+        setSelectedSuggestionIndex(prev => 
+          prev > 0 ? prev - 1 : suggestions.length - 1
+        )
+        break
+      case 'Enter':
+        e.preventDefault()
+        if (selectedSuggestionIndex >= 0) {
+          selectSuggestion(suggestions[selectedSuggestionIndex])
+        } else {
+          searchFilings()
+        }
+        break
+      case 'Escape':
+        setShowSuggestions(false)
+        setSelectedSuggestionIndex(-1)
+        break
+    }
+  }
+
+  // 选择联想建议
+  const selectSuggestion = (suggestion: {symbol: string, name: string, sector: string}) => {
+    setSearchTicker(suggestion.symbol)
+    setShowSuggestions(false)
+    setSelectedSuggestionIndex(-1)
+    // 自动触发搜索
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.blur()
+      }
+      // 自动搜索
+      triggerSearch(suggestion.symbol)
+    }, 100)
+  }
+
+  // 触发搜索函数
+  const triggerSearch = async (ticker?: string) => {
+    const searchTerm = ticker || searchTicker
+    if (!searchTerm.trim()) return
 
     setLoading(true)
     setError('')
     setFilings([])
 
     try {
-      const response = await fetch(`/api/sec/search-filings?ticker=${searchTicker.toUpperCase()}&size=10`)
+      const response = await fetch(`/api/sec/search-filings?ticker=${searchTerm.toUpperCase()}&size=10`)
       const result = await response.json()
 
       if (result.success && result.data.filings) {
@@ -91,6 +163,25 @@ export default function FinancialsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  // 点击外部关闭建议
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(event.target as Node) &&
+          inputRef.current && !inputRef.current.contains(event.target as Node)) {
+        setShowSuggestions(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
+
+  const searchFilings = async () => {
+    await triggerSearch()
   }
 
   const getFilingContent = async (filing: Filing) => {
@@ -174,18 +265,61 @@ export default function FinancialsPage() {
       {/* Search Section */}
       <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex gap-4 items-center">
-          <div className="flex-1">
+          <div className="flex-1 relative">
             <label className="block text-sm font-medium text-gray-700 mb-2">
               股票代码 (如: AAPL, MSFT, GOOGL)
             </label>
             <input
+              ref={inputRef}
               type="text"
               value={searchTicker}
-              onChange={(e) => setSearchTicker(e.target.value.toUpperCase())}
-              onKeyPress={(e) => e.key === 'Enter' && searchFilings()}
-              placeholder="输入股票代码"
+              onChange={(e) => handleInputChange(e.target.value.toUpperCase())}
+              onKeyDown={handleKeyDown}
+              onFocus={() => {
+                if (searchTicker.trim() && suggestions.length > 0) {
+                  setShowSuggestions(true)
+                }
+              }}
+              placeholder="输入股票代码或公司名称"
               className="w-full px-4 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              autoComplete="off"
             />
+            
+            {/* 联想建议下拉列表 */}
+            {showSuggestions && suggestions.length > 0 && (
+              <div 
+                ref={suggestionsRef}
+                className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-64 overflow-y-auto"
+              >
+                {suggestions.map((suggestion, index) => (
+                  <div
+                    key={suggestion.symbol}
+                    onClick={() => selectSuggestion(suggestion)}
+                    className={`px-4 py-3 cursor-pointer border-b border-gray-100 last:border-b-0 ${
+                      index === selectedSuggestionIndex
+                        ? 'bg-blue-50 text-blue-700'
+                        : 'hover:bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {suggestion.symbol}
+                        </div>
+                        <div className="text-sm text-gray-500 truncate">
+                          {suggestion.name}
+                        </div>
+                      </div>
+                      <div className="ml-2">
+                        <span className="inline-block bg-gray-100 text-gray-600 px-2 py-1 rounded-full text-xs">
+                          {suggestion.sector}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
           <button
             onClick={searchFilings}
@@ -195,6 +329,27 @@ export default function FinancialsPage() {
             <Search className="w-4 h-4" />
             {loading ? '搜索中...' : '搜索财报'}
           </button>
+        </div>
+
+        {/* 热门股票快选 */}
+        <div className="mt-4">
+          <div className="text-sm text-gray-600 mb-2">热门股票快选：</div>
+          <div className="flex flex-wrap gap-2">
+            {['AAPL', 'MSFT', 'GOOGL', 'TSLA', 'AMZN', 'META', 'NVDA', 'SOFI'].map((symbol) => (
+              <button
+                key={symbol}
+                onClick={() => {
+                  setSearchTicker(symbol)
+                  setShowSuggestions(false)
+                  triggerSearch(symbol)
+                }}
+                disabled={loading}
+                className="px-3 py-1 text-sm bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {symbol}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
