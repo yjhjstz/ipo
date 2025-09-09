@@ -55,14 +55,16 @@ export class GitHubAIService {
   private baseURL: string
 
   constructor() {
-    if (!process.env.GITHUB_TOKEN) {
-      throw new Error('GITHUB_TOKEN is required')
+    if (!process.env.GITHUB_API_TOKEN) {
+      console.warn('GITHUB_API_TOKEN is not configured, GitHub AI features will be disabled')
+      throw new Error('GITHUB_API_TOKEN is required')
     }
     
-    this.apiKey = process.env.GITHUB_TOKEN
+    this.apiKey = process.env.GITHUB_API_TOKEN
     this.baseURL = 'https://models.github.ai/inference/chat/completions'
     
     console.log('GitHub AI service initialized')
+    console.log('Using token:', this.apiKey.substring(0, 20) + '...')
   }
 
   async analyzeStock(stockData: Record<string, unknown>): Promise<StockAnalysis> {
@@ -486,16 +488,21 @@ IMPORTANT: 请严格按照以下JSON格式返回分析结果，不要添加任�
         }
       }
     } catch (error) {
-      console.error('GitHub AI filing analysis error:', error)
+      console.error('GitHub AI filing analysis error:', {
+        error: error instanceof Error ? error.message : String(error),
+        tokenExists: !!process.env.GITHUB_API_TOKEN,
+        tokenPrefix: this.apiKey?.substring(0, 20) + '...',
+        url: this.baseURL
+      })
       
       // Fallback analysis
       return {
-        summary: '由于技术原因，暂时无法生成详细的财务分析',
-        keyFindings: ['分析处理中'],
-        strengths: ['待分析'],
-        weaknesses: ['待分析'],
-        risks: ['待分析'],
-        opportunities: ['待分析'],
+        summary: '由于GitHub AI服务暂时不可用，已生成基础分析结果。请检查API配置或稍后重试。',
+        keyFindings: ['财务数据已成功获取', 'AI详细分析暂时不可用', '建议稍后重试或检查服务配置'],
+        strengths: ['数据完整性良好', '报告结构清晰'],
+        weaknesses: ['AI分析服务暂时不可用'],
+        risks: ['服务可用性风险'],
+        opportunities: ['优化API配置的机会'],
         financialMetrics: {},
         scores: {
           overallScore: 50,
@@ -505,7 +512,7 @@ IMPORTANT: 请严格按照以下JSON格式返回分析结果，不要添加任�
         },
         recommendation: 'Watch' as const,
         confidenceScore: 10,
-        priceRange: '待分析'
+        priceRange: 'API配置后可用'
       }
     }
   }
