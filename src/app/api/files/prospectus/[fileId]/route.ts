@@ -43,7 +43,7 @@ export async function GET(
     
     let mappingInfo
     try {
-      const mappingContent = require('fs').readFileSync(mappingFile, 'utf8')
+      const mappingContent = readFileSync(mappingFile, 'utf8')
       mappingInfo = JSON.parse(mappingContent)
     } catch (error) {
       console.error('Failed to read mapping file:', error)

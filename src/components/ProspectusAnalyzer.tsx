@@ -49,7 +49,7 @@ export default function ProspectusAnalyzer({ className = '' }: ProspectusAnalyze
       })
       
       // 自动设置外部可访问的URL用于分析 - 使用外部IP地址
-      const externalHost = process.env.NEXT_PUBLIC_EXTERNAL_HOST || 'http://10.128.0.5:3000'
+      const externalHost = process.env.NEXT_PUBLIC_EXTERNAL_HOST || 'http://10.128.0.5:3001'
       const externalUrl = `${externalHost}${data.data.internalUrl}`
       setPdfUrl(externalUrl)
 
