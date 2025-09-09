@@ -66,6 +66,7 @@ export default function FinancialsPage() {
   const [filingContent, setFilingContent] = useState<FilingContent | null>(null)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [loading, setLoading] = useState(false)
+  const [analysisStep, setAnalysisStep] = useState('')
   const [error, setError] = useState('')
 
   const searchFilings = async () => {
@@ -98,22 +99,37 @@ export default function FinancialsPage() {
     setFilingContent(null)
     setAnalysis(null)
     setSelectedFiling(filing)
+    setAnalysisStep('')
 
     try {
-      // Use the quick test endpoint that doesn't require database
+      // Step 1: Fetching content
+      setAnalysisStep('正在获取SEC财报内容...')
+      
       const response = await fetch('/api/sec/quick-test', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ filing })
       })
 
+      // Step 2: Processing response
+      setAnalysisStep('正在处理财报数据...')
       const result = await response.json()
 
       if (result.success) {
+        // Step 3: Content loaded
+        setAnalysisStep('财报内容已加载，AI分析中...')
         setFilingContent(result.data)
-        if (result.data.analysis) {
-          setAnalysis(result.data.analysis)
-        }
+        
+        // Small delay to show the progress step
+        setTimeout(() => {
+          setAnalysisStep('AI分析完成！')
+          if (result.data.analysis) {
+            setAnalysis(result.data.analysis)
+          }
+          setTimeout(() => {
+            setAnalysisStep('')
+          }, 2000)
+        }, 500)
       } else {
         setError(result.message || 'Failed to get filing content and analysis')
       }
@@ -174,7 +190,7 @@ export default function FinancialsPage() {
           <button
             onClick={searchFilings}
             disabled={loading}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 flex items-center gap-2"
+            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
           >
             <Search className="w-4 h-4" />
             {loading ? '搜索中...' : '搜索财报'}
@@ -185,6 +201,55 @@ export default function FinancialsPage() {
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
           {error}
+        </div>
+      )}
+
+      {/* Analysis Progress */}
+      {(loading || analysisStep) && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-6">
+          <div className="flex items-center space-x-3">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+            <div>
+              <div className="text-blue-800 font-medium">
+                {analysisStep || '处理中...'}
+              </div>
+              {analysisStep.includes('AI分析中') && (
+                <div className="text-blue-600 text-sm mt-1">
+                  正在使用GitHub AI进行深度财务分析，请稍候...
+                </div>
+              )}
+              {analysisStep.includes('AI分析完成') && (
+                <div className="text-green-600 text-sm mt-1">
+                  ✨ 分析结果已生成，请查看下方内容
+                </div>
+              )}
+            </div>
+          </div>
+          
+          {/* Progress steps indicator */}
+          <div className="mt-4">
+            <div className="flex items-center space-x-4 text-sm">
+              <div className={`flex items-center space-x-2 ${analysisStep.includes('获取') ? 'text-blue-600' : analysisStep.includes('处理') || analysisStep.includes('AI分析') || analysisStep.includes('完成') ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-2 h-2 rounded-full ${analysisStep.includes('获取') ? 'bg-blue-600 animate-pulse' : analysisStep.includes('处理') || analysisStep.includes('AI分析') || analysisStep.includes('完成') ? 'bg-green-600' : 'bg-gray-300'}`}></div>
+                <span>获取财报</span>
+              </div>
+              
+              <div className={`flex items-center space-x-2 ${analysisStep.includes('处理') ? 'text-blue-600' : analysisStep.includes('AI分析') || analysisStep.includes('完成') ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-2 h-2 rounded-full ${analysisStep.includes('处理') ? 'bg-blue-600 animate-pulse' : analysisStep.includes('AI分析') || analysisStep.includes('完成') ? 'bg-green-600' : 'bg-gray-300'}`}></div>
+                <span>数据处理</span>
+              </div>
+              
+              <div className={`flex items-center space-x-2 ${analysisStep.includes('AI分析中') ? 'text-blue-600' : analysisStep.includes('完成') ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-2 h-2 rounded-full ${analysisStep.includes('AI分析中') ? 'bg-blue-600 animate-pulse' : analysisStep.includes('完成') ? 'bg-green-600' : 'bg-gray-300'}`}></div>
+                <span>AI分析</span>
+              </div>
+              
+              <div className={`flex items-center space-x-2 ${analysisStep.includes('完成') ? 'text-green-600' : 'text-gray-400'}`}>
+                <div className={`w-2 h-2 rounded-full ${analysisStep.includes('完成') ? 'bg-green-600' : 'bg-gray-300'}`}></div>
+                <span>分析完成</span>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -224,10 +289,11 @@ export default function FinancialsPage() {
                     </a>
                     <button
                       onClick={() => getFilingContent(filing)}
-                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-1"
+                      disabled={loading}
+                      className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1"
                     >
                       <TrendingUp className="w-3 h-3" />
-                      获取并分析
+                      {loading ? '分析中...' : '获取并分析'}
                     </button>
                   </div>
                 </div>
