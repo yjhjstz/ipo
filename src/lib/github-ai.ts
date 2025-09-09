@@ -516,6 +516,233 @@ IMPORTANT: 请严格按照以下JSON格式返回分析结果，不要添加任�
       }
     }
   }
+  
+  async extractFinancialData(
+    htmlContent: string,
+    ticker: string = 'UNKNOWN',
+    companyName: string = 'Unknown Company'
+  ): Promise<{
+    revenue: number[]
+    netIncome: number[]
+    assets: number[]
+    liabilities: number[]
+    cashFlow: number[]
+    periods: string[]
+    rawData: { [key: string]: number[] }
+  }> {
+    // 清理HTML标签，提取文本内容
+    const content = htmlContent
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    // 限制内容长度避免token超限
+    const analysisContent = content.substring(0, 15000)
+
+    const prompt = `
+请从以下财务报表内容中提取关键财务数据，用于生成趋势图表。
+
+公司信息：
+- 股票代码：${ticker}
+- 公司名称：${companyName}
+
+财报内容：
+${analysisContent}
+
+请仔细分析文档内容，提取以下财务指标的多期数据。如果找到多个时期的数据，请按时间顺序排列。数值请转换为百万美元单位。
+
+要求严格按照以下JSON格式返回，不要添加任何解释或格式符号：
+
+{
+  "revenue": [数值1, 数值2, 数值3],
+  "netIncome": [数值1, 数值2, 数值3],
+  "assets": [数值1, 数值2, 数值3],
+  "liabilities": [数值1, 数值2, 数值3],
+  "cashFlow": [数值1, 数值2, 数值3],
+  "periods": ["Period 1", "Period 2", "Period 3"],
+  "rawData": {
+    "revenue": [数值1, 数值2, 数值3],
+    "netIncome": [数值1, 数值2, 数值3],
+    "assets": [数值1, 数值2, 数值3],
+    "liabilities": [数值1, 数值2, 数值3],
+    "cashFlow": [数值1, 数值2, 数值3]
+  }
+}
+
+重要说明：
+1. 所有数值都以百万美元为单位（不要包含单位符号）
+2. 时期标签可以是年份、季度或具体日期
+3. 如果某个指标在某个时期没有数据，请填入0
+4. 最多提取8个时期的数据
+5. 确保JSON格式完全正确且可解析
+6. 只返回JSON，不要添加任何其他文字
+
+请重点关注以下财务指标：
+- Revenue/Sales/Total Revenue（营收）
+- Net Income/Net Earnings（净利润）  
+- Total Assets（总资产）
+- Total Liabilities（总负债）
+- Operating Cash Flow/Cash Flow from Operations（经营现金流）
+`
+
+    try {
+      console.log(`Extracting financial data using GitHub AI for ${ticker}...`)
+      
+      const response = await fetch(this.baseURL, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/vnd.github+json',
+          'Authorization': `Bearer ${this.apiKey}`,
+          'X-GitHub-Api-Version': '2022-11-28',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-4.1',
+          messages: [{
+            role: 'user',
+            content: prompt
+          }],
+          max_tokens: 2000,
+          temperature: 0.1 // Very low temperature for consistent data extraction
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('GitHub AI financial data extraction error:', response.status, errorText)
+        throw new Error(`GitHub AI API error: ${response.status} ${errorText}`)
+      }
+
+      const data = await response.json()
+      const content_response = data.choices?.[0]?.message?.content
+
+      if (!content_response) {
+        throw new Error('Invalid response format from GitHub AI')
+      }
+
+      try {
+        let extractedData
+        try {
+          // 尝试直接解析JSON
+          extractedData = JSON.parse(content_response)
+        } catch {
+          console.log('Direct JSON parse failed for financial data, extracting JSON...')
+          
+          // 尝试多种JSON提取模式
+          let jsonText = null
+          
+          // 模式1: 查找完整的{...}块
+          const jsonMatch1 = content_response.match(/\{[\s\S]*?\}(?=\s*$|$)/);
+          if (jsonMatch1) {
+            jsonText = jsonMatch1[0];
+          }
+          
+          // 模式2: 查找```json块
+          if (!jsonText) {
+            const jsonMatch2 = content_response.match(/```json\s*([\s\S]*?)\s*```/i);
+            if (jsonMatch2) {
+              jsonText = jsonMatch2[1];
+            }
+          }
+          
+          if (jsonText) {
+            extractedData = JSON.parse(jsonText)
+          } else {
+            throw new Error('No valid JSON found in response')
+          }
+        }
+        
+        // 验证和规范化数据结构
+        const normalizedData = {
+          revenue: Array.isArray(extractedData.revenue) ? extractedData.revenue.map(Number).slice(0, 8) : [],
+          netIncome: Array.isArray(extractedData.netIncome) ? extractedData.netIncome.map(Number).slice(0, 8) : [],
+          assets: Array.isArray(extractedData.assets) ? extractedData.assets.map(Number).slice(0, 8) : [],
+          liabilities: Array.isArray(extractedData.liabilities) ? extractedData.liabilities.map(Number).slice(0, 8) : [],
+          cashFlow: Array.isArray(extractedData.cashFlow) ? extractedData.cashFlow.map(Number).slice(0, 8) : [],
+          periods: Array.isArray(extractedData.periods) ? extractedData.periods.slice(0, 8) : [],
+          rawData: extractedData.rawData || {}
+        }
+        
+        // 确保所有数组长度一致
+        const maxLength = Math.max(
+          normalizedData.revenue.length,
+          normalizedData.netIncome.length,
+          normalizedData.assets.length,
+          normalizedData.liabilities.length,
+          normalizedData.cashFlow.length,
+          normalizedData.periods.length
+        )
+        
+        // 如果没有period标签，生成默认标签
+        if (normalizedData.periods.length === 0 && maxLength > 0) {
+          for (let i = 0; i < maxLength; i++) {
+            normalizedData.periods.push(`Period ${i + 1}`)
+          }
+        }
+        
+        // 统一数组长度
+        const targetLength = Math.max(maxLength, normalizedData.periods.length)
+        
+        ;['revenue', 'netIncome', 'assets', 'liabilities', 'cashFlow'].forEach(key => {
+          const arr = normalizedData[key as keyof typeof normalizedData] as number[]
+          while (arr.length < targetLength) {
+            arr.push(0)
+          }
+          if (arr.length > targetLength) {
+            (normalizedData[key as keyof typeof normalizedData] as number[]) = arr.slice(0, targetLength)
+          }
+        })
+        
+        normalizedData.periods = normalizedData.periods.slice(0, targetLength)
+        
+        console.log('GitHub AI extracted financial data:', {
+          periods: normalizedData.periods.length,
+          dataPoints: {
+            revenue: normalizedData.revenue.length,
+            netIncome: normalizedData.netIncome.length,
+            assets: normalizedData.assets.length,
+            liabilities: normalizedData.liabilities.length,
+            cashFlow: normalizedData.cashFlow.length
+          },
+          sampleData: {
+            revenue: normalizedData.revenue.slice(0, 3),
+            periods: normalizedData.periods.slice(0, 3)
+          }
+        })
+        
+        return normalizedData
+      } catch (parseError) {
+        console.error('Failed to parse GitHub AI financial data response:', parseError)
+        console.error('AI response preview:', content_response.substring(0, 500))
+        
+        // 返回空数据结构
+        return {
+          revenue: [],
+          netIncome: [],
+          assets: [],
+          liabilities: [],
+          cashFlow: [],
+          periods: [],
+          rawData: {}
+        }
+      }
+    } catch (error) {
+      console.error('GitHub AI financial data extraction error:', error)
+      
+      // 返回空数据结构
+      return {
+        revenue: [],
+        netIncome: [],
+        assets: [],
+        liabilities: [],
+        cashFlow: [],
+        periods: [],
+        rawData: {}
+      }
+    }
+  }
 
   async analyzeQuarterlyTrends(
     ticker: string,

@@ -77,11 +77,16 @@ export async function POST(request: NextRequest) {
 
     const processingTime = Date.now() - startTime
 
-    // 提取数值数据用于图表
-    const chartData = extractFinancialData(content)
-
     // 读取原始HTML内容用于下载
     const rawHtmlContent = readFileSync(filePath, 'utf-8')
+
+    // 提取数值数据用于图表
+    console.log('Using GitHub AI to extract financial data...')
+    const chartData = await githubAI.extractFinancialData(
+      rawHtmlContent,
+      mockFiling.ticker,
+      mockFiling.companyName
+    )
 
     return NextResponse.json({
       success: true,
@@ -225,59 +230,4 @@ function detectFormType(content: string): string {
   
   console.log('No specific form type detected, defaulting to Financial Report')
   return 'Financial Report'
-}
-
-// 辅助函数：提取财务数据用于图表
-function extractFinancialData(content: string) {
-  const data: {
-    revenue: number[]
-    netIncome: number[]
-    assets: number[]
-    quarters: string[]
-  } = {
-    revenue: [],
-    netIncome: [],
-    assets: [],
-    quarters: []
-  }
-
-  // 简单的数值提取模式（这里可以进一步优化）
-  const revenuePattern = /revenue[:\s]+\$?([\d,]+(?:\.\d+)?)\s*(?:million|billion|thousand)?/gi
-  const incomePattern = /net income[:\s]+\$?([\d,]+(?:\.\d+)?)\s*(?:million|billion|thousand)?/gi
-  const assetsPattern = /total assets[:\s]+\$?([\d,]+(?:\.\d+)?)\s*(?:million|billion|thousand)?/gi
-
-  let match
-  let quarterIndex = 0
-
-  // 提取营收数据
-  while ((match = revenuePattern.exec(content)) !== null && quarterIndex < 8) {
-    const value = parseFloat(match[1].replace(/,/g, ''))
-    if (!isNaN(value)) {
-      data.revenue.push(value)
-      data.quarters.push(`Q${quarterIndex + 1}`)
-      quarterIndex++
-    }
-  }
-
-  // 重置索引提取净利润数据
-  quarterIndex = 0
-  while ((match = incomePattern.exec(content)) !== null && quarterIndex < data.quarters.length) {
-    const value = parseFloat(match[1].replace(/,/g, ''))
-    if (!isNaN(value)) {
-      data.netIncome.push(value)
-      quarterIndex++
-    }
-  }
-
-  // 重置索引提取资产数据
-  quarterIndex = 0
-  while ((match = assetsPattern.exec(content)) !== null && quarterIndex < data.quarters.length) {
-    const value = parseFloat(match[1].replace(/,/g, ''))
-    if (!isNaN(value)) {
-      data.assets.push(value)
-      quarterIndex++
-    }
-  }
-
-  return data
 }

@@ -40,7 +40,10 @@ interface ChartData {
   revenue: number[]
   netIncome: number[]
   assets: number[]
-  quarters: string[]
+  liabilities: number[]
+  cashFlow: number[]
+  periods: string[]
+  rawData: { [key: string]: number[] }
 }
 
 interface AnalysisResult {
@@ -236,12 +239,30 @@ export default function FileUploadAnalyzer() {
 
   // 准备图表数据
   const chartData = result?.data.chartData ? 
-    result.data.chartData.quarters.map((quarter, idx) => ({
-      quarter,
+    result.data.chartData.periods.map((period, idx) => ({
+      period,
       revenue: result.data.chartData.revenue[idx] || 0,
       netIncome: result.data.chartData.netIncome[idx] || 0,
-      assets: result.data.chartData.assets[idx] || 0
+      assets: result.data.chartData.assets[idx] || 0,
+      liabilities: result.data.chartData.liabilities[idx] || 0,
+      cashFlow: result.data.chartData.cashFlow[idx] || 0
     })) : []
+
+  // 财务比率数据
+  const ratioData = result?.data.chartData ? 
+    result.data.chartData.periods.map((period, idx) => {
+      const revenue = result.data.chartData.revenue[idx] || 1
+      const assets = result.data.chartData.assets[idx] || 1
+      const liabilities = result.data.chartData.liabilities[idx] || 0
+      const netIncome = result.data.chartData.netIncome[idx] || 0
+      
+      return {
+        period,
+        profitMargin: revenue > 0 ? (netIncome / revenue * 100) : 0,
+        debtToAssets: assets > 0 ? (liabilities / assets * 100) : 0,
+        roa: assets > 0 ? (netIncome / assets * 100) : 0 // Return on Assets
+      }
+    }) : []
 
   const scoreData = result?.data.analysis ? [
     { name: '综合', value: result.data.analysis.overallScore, color: '#3B82F6' },
@@ -551,7 +572,7 @@ export default function FileUploadAnalyzer() {
             </div>
           </div>
 
-          {/* Charts */}
+          {/* Enhanced Charts */}
           {chartData.length > 0 && (
             <div className="bg-white border rounded-lg p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
@@ -559,38 +580,100 @@ export default function FileUploadAnalyzer() {
                 财务趋势图表
               </h3>
               
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* Revenue Chart */}
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">营收趋势</h4>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="quarter" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
+              <div className="space-y-8">
+                {/* Revenue and Income Trends */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">营收趋势</h4>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="period" />
+                          <YAxis />
+                          <Tooltip formatter={(value: number) => [`${value.toFixed(1)}M`, 'Revenue']} />
+                          <Line type="monotone" dataKey="revenue" stroke="#3B82F6" strokeWidth={3} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">净利润趋势</h4>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="period" />
+                          <YAxis />
+                          <Tooltip formatter={(value: number) => [`${value.toFixed(1)}M`, 'Net Income']} />
+                          <Bar dataKey="netIncome" fill="#10B981" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
 
-                {/* Profit Chart */}
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-3">净利润趋势</h4>
-                  <div className="h-64">
-                    <ResponsiveContainer width="100%" height="100%">
-                      <BarChart data={chartData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="quarter" />
-                        <YAxis />
-                        <Tooltip />
-                        <Bar dataKey="netIncome" fill="#10B981" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                {/* Balance Sheet Trends */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">资产负债趋势</h4>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="period" />
+                          <YAxis />
+                          <Tooltip formatter={(value: number, name: string) => [`${value.toFixed(1)}M`, name === 'assets' ? '总资产' : '总负债']} />
+                          <Line type="monotone" dataKey="assets" stroke="#8B5CF6" strokeWidth={2} name="assets" />
+                          <Line type="monotone" dataKey="liabilities" stroke="#F59E0B" strokeWidth={2} name="liabilities" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">现金流趋势</h4>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={chartData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="period" />
+                          <YAxis />
+                          <Tooltip formatter={(value: number) => [`${value.toFixed(1)}M`, 'Cash Flow']} />
+                          <Bar dataKey="cashFlow" fill="#06B6D4" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   </div>
                 </div>
+
+                {/* Financial Ratios */}
+                {ratioData.length > 0 && (
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-3">财务比率分析</h4>
+                    <div className="h-64">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={ratioData}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="period" />
+                          <YAxis />
+                          <Tooltip formatter={(value: number, name: string) => {
+                            const nameMap: { [key: string]: string } = {
+                              'profitMargin': '利润率',
+                              'debtToAssets': '负债率',
+                              'roa': '资产回报率'
+                            }
+                            return [`${value.toFixed(1)}%`, nameMap[name] || name]
+                          }} />
+                          <Line type="monotone" dataKey="profitMargin" stroke="#EF4444" strokeWidth={2} name="profitMargin" />
+                          <Line type="monotone" dataKey="debtToAssets" stroke="#F59E0B" strokeWidth={2} name="debtToAssets" />
+                          <Line type="monotone" dataKey="roa" stroke="#10B981" strokeWidth={2} name="roa" />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}

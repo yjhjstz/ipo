@@ -45,6 +45,14 @@ export async function POST(request: NextRequest) {
 
     const processingTime = Date.now() - startTime
 
+    // 4. Extract financial data for charts
+    console.log('Using GitHub AI to extract financial data...')
+    const chartData = await githubAI.extractFinancialData(
+      htmlContent,
+      filing.ticker,
+      filing.companyName
+    )
+
     return NextResponse.json({
       success: true,
       data: {
@@ -83,6 +91,7 @@ export async function POST(request: NextRequest) {
           totalDebt: aiAnalysisResult.financialMetrics.totalDebt,
           cashAndEquivalents: aiAnalysisResult.financialMetrics.cashAndEquivalents,
         },
+        chartData,
         metadata: {
           contentLength: htmlContent.length,
           tablesFound: financialTables.length,
