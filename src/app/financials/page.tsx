@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Search, Download, FileText, TrendingUp, AlertTriangle } from 'lucide-react'
+import { Search, Download, FileText, TrendingUp, AlertTriangle, Upload } from 'lucide-react'
 import FilingViewer from '@/components/FilingViewer'
+import FileUploadAnalyzer from '@/components/FileUploadAnalyzer'
 import { searchStocks } from '@/lib/stock-suggestions'
 
 interface Filing {
@@ -61,9 +62,9 @@ interface Analysis {
 }
 
 export default function FinancialsPage() {
+  const [activeTab, setActiveTab] = useState<'search' | 'upload'>('search')
   const [searchTicker, setSearchTicker] = useState('')
   const [filings, setFilings] = useState<Filing[]>([])
-  const [selectedFiling, setSelectedFiling] = useState<Filing | null>(null)
   const [filingContent, setFilingContent] = useState<FilingContent | null>(null)
   const [analysis, setAnalysis] = useState<Analysis | null>(null)
   const [loading, setLoading] = useState(false)
@@ -189,7 +190,6 @@ export default function FinancialsPage() {
     setError('')
     setFilingContent(null)
     setAnalysis(null)
-    setSelectedFiling(filing)
     setAnalysisStep('')
 
     try {
@@ -259,11 +259,46 @@ export default function FinancialsPage() {
     <div className="container mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">SEC财报分析</h1>
-        <p className="text-gray-600">搜索美国上市公司的10-K年报和10-Q季报，使用AI进行深度财务分析</p>
+        <p className="text-gray-600">搜索美国上市公司的10-K年报和10-Q季报，或上传HTML格式财务报表进行AI深度分析</p>
       </div>
 
-      {/* Search Section */}
-      <div className="bg-white rounded-lg shadow-md p-6 mb-6">
+      {/* Tab Navigation */}
+      <div className="border-b border-gray-200 mb-6">
+        <nav className="-mb-px flex space-x-8">
+          <button
+            onClick={() => setActiveTab('search')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'search'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <Search className="w-4 h-4" />
+              在线搜索
+            </span>
+          </button>
+          <button
+            onClick={() => setActiveTab('upload')}
+            className={`py-2 px-1 border-b-2 font-medium text-sm ${
+              activeTab === 'upload'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            <span className="flex items-center gap-2">
+              <Upload className="w-4 h-4" />
+              文件上传
+            </span>
+          </button>
+        </nav>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'search' && (
+        <>
+          {/* Search Section */}
+          <div className="bg-white rounded-lg shadow-md p-6 mb-6">
         <div className="flex gap-4 items-center">
           <div className="flex-1 relative">
             <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -644,9 +679,15 @@ export default function FinancialsPage() {
           )}
         </div>
       )}
+        </>
+      )}
+
+      {activeTab === 'upload' && (
+        <FileUploadAnalyzer />
+      )}
 
       {/* Filing Viewer */}
-      {filingContent && (
+      {filingContent && activeTab === 'search' && (
         <div className="mt-6">
           <FilingViewer
             content={filingContent.content}
