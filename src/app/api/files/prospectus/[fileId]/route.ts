@@ -3,6 +3,19 @@ import { readFileSync, existsSync, statSync } from 'fs'
 import path from 'path'
 import { tmpdir } from 'os'
 
+// CORS预检请求支持
+export async function OPTIONS() {
+  return new NextResponse(null, {
+    status: 200,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+      'Access-Control-Max-Age': '86400',
+    },
+  })
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ fileId: string }> }
@@ -60,15 +73,17 @@ export async function GET(
         return NextResponse.json({ error: '无效的PDF文件' }, { status: 400 })
       }
       
-      // 设置安全响应头
+      // 设置安全响应头 - 支持外部AI服务访问
       const headers = new Headers({
         'Content-Type': 'application/pdf',
         'Content-Length': fileBuffer.length.toString(),
         'Content-Disposition': 'inline; filename="prospectus.pdf"',
-        'Cache-Control': 'private, no-cache, no-store, must-revalidate',
+        'Cache-Control': 'public, max-age=3600', // 1小时缓存，支持外部访问
         'X-Content-Type-Options': 'nosniff',
-        'X-Frame-Options': 'DENY',
-        'Referrer-Policy': 'no-referrer'
+        'Access-Control-Allow-Origin': '*', // 允许AI服务访问
+        'Access-Control-Allow-Methods': 'GET',
+        'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+        'Access-Control-Expose-Headers': 'Content-Length, Content-Type'
       })
 
       return new NextResponse(fileBuffer, {

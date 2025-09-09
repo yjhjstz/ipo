@@ -48,8 +48,10 @@ export default function ProspectusAnalyzer({ className = '' }: ProspectusAnalyze
         internalUrl: data.data.internalUrl
       })
       
-      // 自动设置内部URL用于分析
-      setPdfUrl(`${window.location.origin}${data.data.internalUrl}`)
+      // 自动设置外部可访问的URL用于分析 - 使用外部IP地址
+      const externalHost = process.env.NEXT_PUBLIC_EXTERNAL_HOST || 'http://10.128.0.5:3000'
+      const externalUrl = `${externalHost}${data.data.internalUrl}`
+      setPdfUrl(externalUrl)
 
     } catch (err) {
       console.error('Upload error:', err)
@@ -60,8 +62,9 @@ export default function ProspectusAnalyzer({ className = '' }: ProspectusAnalyze
   }
 
   const handleAnalyze = async () => {
+    const externalHost = process.env.NEXT_PUBLIC_EXTERNAL_HOST || 'http://10.128.0.5:3000'
     const urlToAnalyze = uploadMode === 'file' && uploadedFile 
-      ? `${window.location.origin}${uploadedFile.internalUrl}`
+      ? `${externalHost}${uploadedFile.internalUrl}`
       : pdfUrl.trim()
 
     if (!urlToAnalyze) {

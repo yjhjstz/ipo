@@ -23,8 +23,11 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 检查是否为PDF文件
-    if (!pdfUrl.toLowerCase().endsWith('.pdf') && !pdfUrl.includes('pdf')) {
+    // 检查是否为PDF文件或内部文件访问API
+    const isInternalProspectusUrl = pdfUrl.includes('/api/files/prospectus/')
+    const isPdfUrl = pdfUrl.toLowerCase().endsWith('.pdf') || pdfUrl.includes('pdf')
+    
+    if (!isPdfUrl && !isInternalProspectusUrl) {
       return NextResponse.json(
         { error: '请提供PDF文件的URL' },
         { status: 400 }
