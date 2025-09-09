@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
     }
 
     // 验证文件名（防止路径遍历攻击）
-    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_')
+    const sanitizedFileName = file.name.replace(/[^a-zA-Z0-9.\-_\u4e00-\u9fff]/g, '_')
     if (file.name !== sanitizedFileName) {
-      console.warn(`Potentially malicious filename detected: ${file.name}`)
+      console.warn(`Filename sanitized: ${file.name} -> ${sanitizedFileName}`)
     }
 
     // 验证文件大小 (最大 50MB - 招股书通常较大)
@@ -48,10 +48,15 @@ export async function POST(request: NextRequest) {
       mkdirSync(uploadDir, { recursive: true, mode: 0o700 })
     }
 
-    // 生成唯一文件名
-    const fileId = randomUUID()
-    const fileName = `prospectus-${fileId}.pdf`
+    // 使用原始文件名，但添加时间戳避免冲突
+    const timestamp = Date.now()
+    const fileExtension = path.extname(sanitizedFileName) || '.pdf'
+    const baseFileName = path.basename(sanitizedFileName, fileExtension)
+    const fileName = `${baseFileName}_${timestamp}${fileExtension}`
     const filePath = path.join(uploadDir, fileName)
+    
+    // 生成用于API访问的唯一ID
+    const fileId = randomUUID()
 
     // 安全检查：确保文件路径在允许的目录内
     const resolvedPath = path.resolve(filePath)
@@ -82,13 +87,33 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
+    // 保存文件映射信息（fileId -> 实际文件名）
+    const mappingFile = path.join(uploadDir, `${fileId}.json`)
+    const mappingInfo = {
+      fileId,
+      originalName: file.name,
+      sanitizedName: sanitizedFileName,
+      actualFileName: fileName,
+      uploadedAt: new Date().toISOString(),
+      size: file.size,
+      type: file.type
+    }
+    
+    try {
+      writeFileSync(mappingFile, JSON.stringify(mappingInfo, null, 2), { mode: 0o600 })
+    } catch (mappingError) {
+      console.error('Mapping file write error:', mappingError)
+      // 继续执行，不阻塞主流程
+    }
+
     // 生成内部访问URL（不对外暴露实际路径）
     const internalUrl = `/api/files/prospectus/${fileId}`
 
     // 返回文件信息
     const fileInfo = {
       id: fileId,
-      originalName: sanitizedFileName,
+      originalName: file.name,
+      sanitizedName: sanitizedFileName,
       fileName: fileName,
       internalUrl: internalUrl,
       size: file.size,
@@ -96,7 +121,7 @@ export async function POST(request: NextRequest) {
       uploadedAt: new Date().toISOString()
     }
 
-    console.log(`Prospectus uploaded: ${sanitizedFileName} (${file.size} bytes) -> ${fileName}`)
+    console.log(`Prospectus uploaded: ${file.name} (${file.size} bytes) -> ${fileName}`)
 
     return NextResponse.json({
       success: true,

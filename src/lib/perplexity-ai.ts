@@ -368,8 +368,40 @@ export class PerplexityAIService {
 请严格按照JSON格式返回，不要包含任何其他内容或解释。`
 
     try {
-      console.log('Sending prospectus analysis request to Perplexity AI...')
+      console.log('=== Perplexity AI Request ===')
+      console.log('URL:', `${this.baseUrl}/chat/completions`)
       console.log('PDF URL:', pdfUrl)
+      
+      const payload = {
+        messages: [
+          {
+            content: [
+              {
+                type: 'text',
+                text: prompt
+              },
+              {
+                type: 'file_url',
+                file_url: {
+                  url: pdfUrl
+                }
+              }
+            ],
+            role: 'user'
+          }
+        ],
+        model: 'sonar-pro',
+        max_tokens: 20000,
+        temperature: 0.1
+      }
+      
+      console.log('=== Complete Perplexity AI Payload ===')
+      console.log('const payload =', JSON.stringify(payload, null, 4) + ';')
+      console.log('')
+      console.log('Request Headers:', {
+        'Authorization': `Bearer ${this.apiKey.substring(0, 10)}...`,
+        'Content-Type': 'application/json'
+      })
       
       const response = await this.fetchWithRetry(`${this.baseUrl}/chat/completions`, {
         method: 'POST',
@@ -377,38 +409,21 @@ export class PerplexityAIService {
           'Authorization': `Bearer ${this.apiKey}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          model: 'sonar-pro',
-          messages: [
-            {
-              role: 'user',
-              content: [
-                {
-                  type: 'text',
-                  text: prompt
-                },
-                {
-                  type: 'file_url',
-                  file_url: {
-                    url: pdfUrl
-                  }
-                }
-              ]
-            }
-          ],
-          max_tokens: 2000,
-          temperature: 0.1
-        })
+        body: JSON.stringify(payload)
       })
 
+      console.log('=== Perplexity AI Response ===')
+      console.log('Status:', response.status)
+      console.log('Headers:', Object.fromEntries(response.headers.entries()))
+      
       if (!response.ok) {
         const errorText = await response.text()
-        console.error('Perplexity API error:', response.status, errorText)
+        console.error('Perplexity API Error Response:', errorText)
         throw new Error(`Perplexity API error: ${response.status}`)
       }
 
       const data = await response.json()
-      console.log('Perplexity AI prospectus response received:', JSON.stringify(data, null, 2))
+      console.log('Response Body:', JSON.stringify(data, null, 2))
 
       if (data.choices && data.choices[0] && data.choices[0].message) {
         const content = data.choices[0].message.content

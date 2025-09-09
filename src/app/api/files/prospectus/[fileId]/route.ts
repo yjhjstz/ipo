@@ -34,7 +34,23 @@ export async function GET(
     }
 
     const uploadDir = path.join(tmpdir(), 'prospectus-uploads')
-    const fileName = `prospectus-${fileId}.pdf`
+    
+    // 读取文件映射信息
+    const mappingFile = path.join(uploadDir, `${fileId}.json`)
+    if (!existsSync(mappingFile)) {
+      return NextResponse.json({ error: '文件映射信息不存在' }, { status: 404 })
+    }
+    
+    let mappingInfo
+    try {
+      const mappingContent = require('fs').readFileSync(mappingFile, 'utf8')
+      mappingInfo = JSON.parse(mappingContent)
+    } catch (error) {
+      console.error('Failed to read mapping file:', error)
+      return NextResponse.json({ error: '文件映射信息损坏' }, { status: 500 })
+    }
+    
+    const fileName = mappingInfo.actualFileName
     const filePath = path.join(uploadDir, fileName)
 
     // 安全检查：确保文件路径在允许的目录内
@@ -74,10 +90,11 @@ export async function GET(
       }
       
       // 设置安全响应头 - 支持外部AI服务访问
+      const displayFileName = mappingInfo.originalName || 'prospectus.pdf'
       const headers = new Headers({
         'Content-Type': 'application/pdf',
         'Content-Length': fileBuffer.length.toString(),
-        'Content-Disposition': 'inline; filename="prospectus.pdf"',
+        'Content-Disposition': `inline; filename="${displayFileName}"`,
         'Cache-Control': 'public, max-age=3600', // 1小时缓存，支持外部访问
         'X-Content-Type-Options': 'nosniff',
         'Access-Control-Allow-Origin': '*', // 允许AI服务访问
