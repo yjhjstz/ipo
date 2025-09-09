@@ -149,3 +149,105 @@ enum PricingType {
   FREEMIUM
   PAID
 }
+
+// SEC Filing Models
+model FilingDocument {
+  id              String            @id @default(cuid())
+  accessionNo     String            @unique // SEC accession number
+  cik             String            // Company CIK
+  ticker          String
+  companyName     String
+  formType        String            // 10-K, 10-Q, etc.
+  filedAt         DateTime
+  periodOfReport  DateTime?         // Report period end date
+  linkToHtml      String
+  linkToTxt       String?
+  linkToFilingDetails String
+  description     String?
+  
+  // Content metadata
+  contentLength   Int?              // HTML content length
+  tablesFound     Int               @default(0)
+  sectionsFound   Int               @default(0)
+  
+  // Processing status
+  isContentFetched Boolean          @default(false)
+  isAnalyzed      Boolean          @default(false)
+  
+  // Relationships
+  content         FilingContent?
+  analyses        FilingAnalysis[]
+  
+  // Timestamps
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  
+  @@index([ticker, formType])
+  @@index([ticker, filedAt])
+  @@index([cik])
+  @@map("filing_documents")
+}
+
+model FilingContent {
+  id              String            @id @default(cuid())
+  filingId        String            @unique
+  filing          FilingDocument    @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  
+  // Content data
+  rawHtml         String            @db.Text // Full HTML content
+  analyzedContent String            @db.Text // AI-processed summary content
+  
+  // Extracted sections
+  financialTables String[]          @default([]) // JSON strings of financial tables
+  textSections    String[]          @default([]) // Key text sections
+  
+  // Content processing metadata
+  processedAt     DateTime          @default(now())
+  processingTime  Int?              // milliseconds
+  
+  @@map("filing_contents")
+}
+
+model FilingAnalysis {
+  id              String            @id @default(cuid())
+  filingId        String
+  filing          FilingDocument    @relation(fields: [filingId], references: [id], onDelete: Cascade)
+  
+  // Analysis metadata
+  analysisType    String            // "financial", "risk", "outlook", etc.
+  aiModel         String            // Which AI model was used
+  
+  // AI Analysis Results
+  summary         String?           @db.Text // Brief analysis summary
+  keyFindings     String[]          @default([]) // Key findings array
+  strengths       String[]          @default([]) // Company strengths
+  weaknesses      String[]          @default([]) // Company weaknesses  
+  risks           String[]          @default([]) // Risk factors
+  opportunities   String[]          @default([]) // Growth opportunities
+  
+  // Financial metrics extracted by AI
+  revenue         Float?
+  netIncome       Float?
+  totalAssets     Float?
+  totalDebt       Float?
+  cashAndEquivalents Float?
+  
+  // Analysis scores (0-100)
+  overallScore    Float?            // Overall financial health score
+  profitabilityScore Float?         // Profitability analysis score
+  liquidityScore  Float?            // Liquidity analysis score
+  solvencyScore   Float?            // Solvency analysis score
+  
+  // Investment recommendation
+  recommendation  String?           // "Buy", "Hold", "Sell", "Watch"
+  confidenceScore Float?            // AI confidence in analysis (0-100)
+  targetPrice     Float?            // AI-suggested target price
+  priceRange      String?           // Expected price range
+  
+  // Processing metadata
+  processingTime  Int?              // Analysis time in milliseconds
+  createdAt       DateTime          @default(now())
+  
+  @@index([filingId, analysisType])
+  @@map("filing_analyses")
+}
