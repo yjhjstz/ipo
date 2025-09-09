@@ -42,6 +42,35 @@ export interface TrendingStartupsResponse {
   last_updated: string
 }
 
+export interface ProspectusAnalysis {
+  companyName: string
+  pdfUrl: string
+  analysis: {
+    businessModel: string
+    financialHighlights: {
+      revenue?: string
+      profitability?: string
+      growth?: string
+      debtLevels?: string
+    }
+    riskFactors: string[]
+    competitiveAdvantages: string[]
+    marketOpportunity: string
+    managementTeam: string
+    investmentRecommendation: {
+      rating: 'Strong Buy' | 'Buy' | 'Hold' | 'Sell' | 'Strong Sell'
+      reasoning: string
+      targetPrice?: string
+    }
+    keyMetrics: {
+      valuation?: string
+      priceToSales?: string
+      marketSize?: string
+      employeeCount?: string
+    }
+  }
+}
+
 export class PerplexityAIService {
   private baseUrl: string
   private apiKey: string
@@ -301,6 +330,135 @@ export class PerplexityAIService {
           }
         ],
         last_updated: new Date().toISOString()
+      }
+    }
+  }
+
+  async analyzeProspectus(pdfUrl: string): Promise<ProspectusAnalysis> {
+    const prompt = `
+作为专业的投资分析师，请全面分析这份IPO招股书并提供详细的投资分析报告。
+
+请提供JSON格式的分析（用中文），包含以下结构：
+{
+  "companyName": "公司名称",
+  "businessModel": "商业模式详细描述（150-200字）",
+  "financialHighlights": {
+    "revenue": "营收情况",
+    "profitability": "盈利能力", 
+    "growth": "增长趋势",
+    "debtLevels": "负债水平"
+  },
+  "riskFactors": ["主要风险1", "主要风险2", "主要风险3"],
+  "competitiveAdvantages": ["竞争优势1", "竞争优势2", "竞争优势3"],
+  "marketOpportunity": "市场机会分析（100-150字）",
+  "managementTeam": "管理团队评估（80-120字）",
+  "investmentRecommendation": {
+    "rating": "Strong Buy/Buy/Hold/Sell/Strong Sell",
+    "reasoning": "投资建议理由（120-180字）",
+    "targetPrice": "目标价格（如有）"
+  },
+  "keyMetrics": {
+    "valuation": "估值水平",
+    "priceToSales": "市销率",
+    "marketSize": "市场规模",
+    "employeeCount": "员工人数"
+  }
+}
+
+请严格按照JSON格式返回，不要包含任何其他内容或解释。`
+
+    try {
+      console.log('Sending prospectus analysis request to Perplexity AI...')
+      console.log('PDF URL:', pdfUrl)
+      
+      const response = await this.fetchWithRetry(`${this.baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'sonar-pro',
+          messages: [
+            {
+              role: 'user',
+              content: [
+                {
+                  type: 'text',
+                  text: prompt
+                },
+                {
+                  type: 'file_url',
+                  file_url: {
+                    url: pdfUrl
+                  }
+                }
+              ]
+            }
+          ],
+          max_tokens: 2000,
+          temperature: 0.1
+        })
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        console.error('Perplexity API error:', response.status, errorText)
+        throw new Error(`Perplexity API error: ${response.status}`)
+      }
+
+      const data = await response.json()
+      console.log('Perplexity AI prospectus response received:', JSON.stringify(data, null, 2))
+
+      if (data.choices && data.choices[0] && data.choices[0].message) {
+        const content = data.choices[0].message.content
+        
+        try {
+          const jsonMatch = content.match(/\{[\s\S]*\}/)
+          const jsonString = jsonMatch ? jsonMatch[0] : content
+          const analysisData = JSON.parse(jsonString)
+          
+          return {
+            companyName: analysisData.companyName || '未知公司',
+            pdfUrl,
+            analysis: analysisData
+          }
+        } catch {
+          console.error('Failed to parse Perplexity prospectus response:', content)
+          throw new Error('Invalid JSON response from Perplexity')
+        }
+      }
+
+      throw new Error('Invalid response format from Perplexity')
+    } catch (error) {
+      console.error('Perplexity AI prospectus analysis error:', error)
+      
+      return {
+        companyName: '分析失败',
+        pdfUrl,
+        analysis: {
+          businessModel: '由于技术原因，暂时无法分析招股书内容。请稍后重试或联系客服。',
+          financialHighlights: {
+            revenue: '待分析',
+            profitability: '待分析',
+            growth: '待分析',
+            debtLevels: '待分析'
+          },
+          riskFactors: ['分析暂不可用'],
+          competitiveAdvantages: ['分析暂不可用'],
+          marketOpportunity: '分析暂不可用，请稍后重试。',
+          managementTeam: '分析暂不可用，请稍后重试。',
+          investmentRecommendation: {
+            rating: 'Hold' as const,
+            reasoning: '由于技术原因无法完成分析，建议等待系统恢复后重新分析。'
+          },
+          keyMetrics: {
+            valuation: '待分析',
+            priceToSales: '待分析',
+            marketSize: '待分析',
+            employeeCount: '待分析'
+          }
+        }
       }
     }
   }

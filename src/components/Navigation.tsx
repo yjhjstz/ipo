@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BarChart3, Home, Building2, Zap, Bot, FileText } from 'lucide-react'
+import { BarChart3, Home, Building2, Zap, Bot, FileText, FileSearch } from 'lucide-react'
 
 export default function Navigation() {
   const pathname = usePathname()
@@ -12,6 +12,7 @@ export default function Navigation() {
     { href: '/ai-agents', label: '热门AI Agent', icon: Bot },
     { href: '/analytics', label: 'IPO Analytics Dashboard', icon: BarChart3 },
     { href: '/financials', label: 'SEC财报分析', icon: FileText },
+    { href: '/prospectus', label: '招股书分析', icon: FileSearch },
     { href: '/mcp', label: 'IPO Stocks', icon: Zap },
   ]
 
