@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, FileText, TrendingUp, AlertTriangle, BarChart3, X } from 'lucide-react'
+import { Upload, FileText, TrendingUp, AlertTriangle, BarChart3, X, FileDown } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 
 interface FileInfo {
@@ -218,6 +218,22 @@ export default function FileUploadAnalyzer() {
     }
   }
 
+  const downloadRawHTML = () => {
+    if (!result) return
+    
+    // 下载原始HTML内容
+    const htmlContent = result.data.content.raw
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${result.data.metadata.detectedTicker}_原始上传文件_${new Date().toISOString().split('T')[0]}.html`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   // 准备图表数据
   const chartData = result?.data.chartData ? 
     result.data.chartData.quarters.map((quarter, idx) => ({
@@ -387,12 +403,21 @@ export default function FileUploadAnalyzer() {
                   检测到: {result.data.metadata.detectedCompany} ({result.data.metadata.detectedTicker}) - {result.data.metadata.detectedFormType}
                 </div>
               </div>
-              <button
-                onClick={resetUpload}
-                className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                上传新文件
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={downloadRawHTML}
+                  className="px-3 py-1 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 flex items-center gap-1"
+                >
+                  <FileDown className="w-3 h-3" />
+                  下载原文
+                </button>
+                <button
+                  onClick={resetUpload}
+                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  上传新文件
+                </button>
+              </div>
             </div>
           </div>
 

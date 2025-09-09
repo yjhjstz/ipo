@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { writeFileSync, mkdirSync, existsSync } from 'fs'
+import { tmpdir } from 'os'
 import path from 'path'
 import { randomUUID } from 'crypto'
 
@@ -27,8 +28,8 @@ export async function POST(request: NextRequest) {
       }, { status: 400 })
     }
 
-    // 创建上传目录
-    const uploadDir = path.join(process.cwd(), 'uploads')
+    // 使用系统临时目录
+    const uploadDir = path.join(tmpdir(), 'ipo-uploads')
     if (!existsSync(uploadDir)) {
       mkdirSync(uploadDir, { recursive: true })
     }
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
       uploadedAt: new Date().toISOString()
     }
 
-    console.log(`File uploaded: ${file.name} (${file.size} bytes)`)
+    console.log(`File uploaded to temp dir: ${file.name} (${file.size} bytes) -> ${filePath}`)
 
     return NextResponse.json({
       success: true,

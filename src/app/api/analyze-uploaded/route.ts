@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { readFileSync } from 'fs'
+import { tmpdir } from 'os'
 import path from 'path'
 import { GitHubAIService } from '@/lib/github-ai'
 
@@ -14,7 +15,8 @@ export async function POST(request: NextRequest) {
 
     console.log(`Analyzing uploaded file: ${fileInfo.originalName}`)
 
-    const filePath = path.join(process.cwd(), 'uploads', fileInfo.fileName)
+    // 使用临时目录路径
+    const filePath = path.join(tmpdir(), 'ipo-uploads', fileInfo.fileName)
     let content = ''
 
     // 根据文件类型解析内容
@@ -78,6 +80,9 @@ export async function POST(request: NextRequest) {
     // 提取数值数据用于图表
     const chartData = extractFinancialData(content)
 
+    // 读取原始HTML内容用于下载
+    const rawHtmlContent = readFileSync(filePath, 'utf-8')
+
     return NextResponse.json({
       success: true,
       data: {
@@ -87,7 +92,7 @@ export async function POST(request: NextRequest) {
           analysisLength: analysisContent.length
         },
         content: {
-          raw: content.substring(0, 5000), // 只返回前5000字符用于预览
+          raw: rawHtmlContent, // 返回完整的原始HTML内容
           analyzed: analysisContent
         },
         analysis: {

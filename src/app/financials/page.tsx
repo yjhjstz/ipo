@@ -255,6 +255,22 @@ export default function FinancialsPage() {
     }
   }
 
+  const downloadRawHTML = () => {
+    if (!filingContent) return
+    
+    // 下载原始HTML内容
+    const htmlContent = filingContent.content.raw
+    const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${filingContent.filing.ticker}_${filingContent.filing.formType}_原始财报_${new Date().toISOString().split('T')[0]}.html`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   return (
     <div className="container mx-auto p-6">
       <div className="mb-8">
@@ -553,13 +569,22 @@ export default function FinancialsPage() {
                   <TrendingUp className="w-5 h-5" />
                   AI财务分析
                 </h3>
-                <div className="flex items-center gap-2 mt-2">
-                  <span className={`px-2 py-1 rounded-full text-sm font-medium ${getRecommendationColor(analysis.recommendation)}`}>
-                    {analysis.recommendation}
-                  </span>
-                  <span className="text-sm text-gray-500">
-                    置信度: {analysis.confidenceScore}%
-                  </span>
+                <div className="flex items-center justify-between mt-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`px-2 py-1 rounded-full text-sm font-medium ${getRecommendationColor(analysis.recommendation)}`}>
+                      {analysis.recommendation}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      置信度: {analysis.confidenceScore}%
+                    </span>
+                  </div>
+                  <button
+                    onClick={downloadRawHTML}
+                    className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center gap-1"
+                  >
+                    <Download className="w-3 h-3" />
+                    下载原文
+                  </button>
                 </div>
               </div>
               
