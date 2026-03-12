@@ -16,6 +16,8 @@
 | `ANTHROPIC_DEFAULT_OPUS_MODEL` | - | Opus-tier model override (e.g., `glm-5`) |
 | `ANTHROPIC_DEFAULT_SONNET_MODEL` | - | Sonnet-tier model override (e.g., `glm-4.7`) |
 | `ANTHROPIC_DEFAULT_HAIKU_MODEL` | - | Haiku-tier model override (e.g., `glm-4.5-air`) |
+| `ANTHROPIC_MAX_OUTPUT_TOKENS` | - | Override max output tokens for any model |
+| `ANTHROPIC_CONTEXT_WINDOW` | - | Override context window size for any model |
 | `CLAUDE_CODE_USE_BEDROCK` | `false` | Enable AWS Bedrock backend |
 | `CLAUDE_CODE_USE_VERTEX` | `false` | Enable Google Vertex AI backend |
 | `CLOUD_ML_REGION` | `us-east5` | GCP region for Vertex AI |
