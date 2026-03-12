@@ -12,7 +12,10 @@
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ANTHROPIC_MODEL` | Auto | Override model (e.g., `claude-opus-4-6`, `claude-sonnet-4-5-20250929`) |
+| `ANTHROPIC_MODEL` | Auto | Override main model (e.g., `claude-opus-4-6`, `glm-4.7`) |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL` | - | Opus-tier model override (e.g., `glm-5`) |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | - | Sonnet-tier model override (e.g., `glm-4.7`) |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | - | Haiku-tier model override (e.g., `glm-4.5-air`) |
 | `CLAUDE_CODE_USE_BEDROCK` | `false` | Enable AWS Bedrock backend |
 | `CLAUDE_CODE_USE_VERTEX` | `false` | Enable Google Vertex AI backend |
 | `CLOUD_ML_REGION` | `us-east5` | GCP region for Vertex AI |

@@ -17,7 +17,17 @@ curl -fsSL https://quantumio.com.cn/install.sh | bash
 ## Setup
 
 ```bash
+# Claude API (direct)
 export ANTHROPIC_API_KEY=sk-ant-...
+quantwise
+```
+
+也支持 [GLM (智谱 BigModel)](configuration/glm-setup.md)：
+
+```bash
+# GLM via BigModel proxy
+export ANTHROPIC_AUTH_TOKEN=your_zhipu_api_key
+export ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/anthropic
 quantwise
 ```
 
