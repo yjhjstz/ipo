@@ -5,7 +5,7 @@ import { IpoStock } from '@/types/ipo'
 import StockListAnalyticsStyle from '@/components/StockListAnalyticsStyle'
 import AddStockForm from '@/components/AddStockForm'
 import MarketNews from '@/components/MarketNews'
-import TrendingAIStartups from '@/components/TrendingAIStartups'
+import Weather from '@/components/Weather'
 import { Plus } from 'lucide-react'
 
 export default function Home() {
@@ -86,7 +86,7 @@ export default function Home() {
           <div className="space-y-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <MarketNews limit={1} />
-              <TrendingAIStartups compact={true} limit={3} />
+              <Weather compact={true} />
             </div>
             <StockListAnalyticsStyle stocks={stocks} onStockDeleted={handleStockDeleted} />
           </div>
