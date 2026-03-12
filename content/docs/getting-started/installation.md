@@ -1,26 +1,6 @@
 # Installation
 
-## Standalone Binary (Recommended)
-
-One-line install — detects your OS and architecture automatically:
-
-```bash
-curl -fsSL https://quantumio.com.cn/install.sh | bash
-```
-
-### Install a Specific Version
-
-```bash
-curl -fsSL https://quantumio.com.cn/install.sh | bash -s -- --version v1.3.5
-```
-
-### Install to a Custom Directory
-
-```bash
-curl -fsSL https://quantumio.com.cn/install.sh | bash -s -- --dir ~/.local/bin
-```
-
-## NPM
+## NPM (Recommended)
 
 ```bash
 npm install -g quantwise

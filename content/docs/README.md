@@ -8,12 +8,6 @@ An agentic coding & trading intelligence tool that lives in your terminal. Built
 npm install -g quantwise
 ```
 
-Or use the install script (standalone binary):
-
-```bash
-curl -fsSL https://quantumio.com.cn/install.sh | bash
-```
-
 ## Setup
 
 ```bash

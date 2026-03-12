@@ -8,9 +8,8 @@ const STEPS = [
   {
     num: '01',
     title: 'Install',
-    desc: 'Install globally via npm or download the standalone binary.',
+    desc: 'Install globally via npm.',
     code: 'npm install -g quantwise',
-    alt: 'curl -fsSL https://quantumio.com.cn/api/install.sh | bash',
   },
   {
     num: '02',
@@ -67,14 +66,6 @@ function StepCard({ step, index }: { step: typeof STEPS[0]; index: number }) {
             </pre>
             <CopyButton text={step.code} />
           </div>
-          {step.alt && (
-            <div className="relative mt-2 rounded-lg bg-[rgb(12,12,30)] border border-white/8 overflow-hidden">
-              <pre className="p-4 pr-12 text-sm text-gray-500 font-mono overflow-x-auto">
-                <code># or standalone binary{'\n'}{step.alt}</code>
-              </pre>
-              <CopyButton text={step.alt} />
-            </div>
-          )}
         </div>
       </div>
     </div>
