@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
-import Navigation from "@/components/Navigation";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -16,8 +15,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "IPO Tracker - US Stock Analysis",
-  description: "Track and analyze upcoming IPOs from the US market with comprehensive data and insights.",
+  title: "QuantWise - AI Coding & Trading Intelligence",
+  description: "An agentic coding & trading intelligence tool that lives in your terminal. Built on Claude, it understands your codebase and provides market analysis.",
 };
 
 export default function RootLayout({
@@ -30,7 +29,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <Navigation />
         {children}
         <Analytics />
         <SpeedInsights />
