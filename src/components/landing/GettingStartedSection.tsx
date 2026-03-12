@@ -10,7 +10,7 @@ const STEPS = [
     title: 'Install',
     desc: 'Install globally via npm or download the standalone binary.',
     code: 'npm install -g quantwise',
-    alt: 'curl -fsSL https://quantumio.com.cn/install.sh | bash',
+    alt: 'curl -fsSL https://quantumio.com.cn/api/install.sh | bash',
   },
   {
     num: '02',
