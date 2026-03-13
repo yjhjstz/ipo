@@ -5,11 +5,12 @@ import Link from 'next/link'
 import { Zap, Menu, X } from 'lucide-react'
 
 const NAV_LINKS = [
-  { href: '#features', label: 'Features' },
-  { href: '#architecture', label: 'Architecture' },
+  { href: '/#features', label: 'Features' },
+  { href: '/#architecture', label: 'Architecture' },
   { href: '/docs', label: 'Docs' },
-  { href: '#get-started', label: 'Quick Start' },
-  { href: '#support', label: 'Support' },
+  { href: '/chrome-extension', label: 'Extension' },
+  { href: '/#get-started', label: 'Quick Start' },
+  { href: '/#support', label: 'Support' },
 ]
 
 export default function LandingNavbar() {
