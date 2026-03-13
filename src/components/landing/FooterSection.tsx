@@ -11,6 +11,8 @@ const LINKS = {
   ],
   Resources: [
     { label: 'Documentation', href: '/docs' },
+    { label: 'GitHub', href: 'https://github.com/quantumiodb/quantwise' },
+    { label: 'npm Package', href: 'https://www.npmjs.com/package/quantwise' },
     { label: 'Contact', href: 'mailto:yjhjstz@gmail.com' },
   ],
   Trading: [

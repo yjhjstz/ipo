@@ -94,12 +94,31 @@ export default function GettingStartedSection() {
           ))}
         </div>
 
-        <div className="mt-12 text-center">
+        <div className="mt-12 text-center space-y-4">
           <div className="inline-flex items-center gap-2 text-sm text-gray-500">
             <span className="text-green-400">✓</span> Then try:
             <code className="px-2 py-1 bg-white/5 rounded text-cyan-400 font-mono text-xs">/stock AAPL</code>
             <code className="px-2 py-1 bg-white/5 rounded text-cyan-400 font-mono text-xs">/canslim-screener</code>
             <code className="px-2 py-1 bg-white/5 rounded text-cyan-400 font-mono text-xs">/weekly-trade-strategy</code>
+          </div>
+          <div className="flex items-center justify-center gap-4 text-sm">
+            <a
+              href="https://www.npmjs.com/package/quantwise"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-cyan-400 transition-colors underline underline-offset-4 decoration-gray-700 hover:decoration-cyan-400/50"
+            >
+              View on npm
+            </a>
+            <span className="text-gray-700">|</span>
+            <a
+              href="https://github.com/quantumiodb/quantwise"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gray-500 hover:text-cyan-400 transition-colors underline underline-offset-4 decoration-gray-700 hover:decoration-cyan-400/50"
+            >
+              Source on GitHub
+            </a>
           </div>
         </div>
       </div>
