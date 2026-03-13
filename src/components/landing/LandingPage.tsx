@@ -7,6 +7,7 @@ import LandingNavbar from './LandingNavbar'
 import FeaturesSection from './FeaturesSection'
 import ArchitectureSection from './ArchitectureSection'
 import GettingStartedSection from './GettingStartedSection'
+import TelegramBotSection from './TelegramBotSection'
 import SupportSection from './SupportSection'
 import FooterSection from './FooterSection'
 
@@ -148,6 +149,7 @@ export default function LandingPage() {
       <LandingNavbar />
       <HeroSection />
       <FeaturesSection />
+      <TelegramBotSection />
       <ArchitectureSection />
       <GettingStartedSection />
       <SupportSection />
