@@ -21,7 +21,7 @@ Local:  http://192.168.1.100:3001
 Stop with: /remote-control stop
 ```
 
-Open the URL on any device to access the web UI. If `TUNNEL_TOKEN` is set, append it to the URL:
+Open the URL on any device to access the web UI. If `REMOTE_TOKEN` is set, append it to the URL:
 
 ```
 http://192.168.1.100:3001/?token=mysecret
@@ -102,12 +102,12 @@ ingress:
 
 ```bash
 export TUNNEL_URL="https://your-tunnel.example.com"
-export TUNNEL_TOKEN="your-secret-token"   # Strongly recommended
+export REMOTE_TOKEN="your-secret-token"   # Strongly recommended
 ```
 
-## Authentication (TUNNEL_TOKEN)
+## Authentication (REMOTE_TOKEN)
 
-When `TUNNEL_TOKEN` is set, all API requests (except the initial HTML page load at `/`) require authentication. This means you **must include the token in the URL** when opening the web UI in a browser or on your phone.
+When `REMOTE_TOKEN` is set, all API requests (except the initial HTML page load at `/`) require authentication. This means you **must include the token in the URL** when opening the web UI in a browser or on your phone.
 
 ### Accessing from Browser / Phone
 
@@ -123,20 +123,20 @@ The web UI reads the token from the URL on first load and stores it in `sessionS
 
 The server checks authentication on all endpoints except `GET /` (the HTML page itself):
 
-- **URL query parameter**: `?token=<TUNNEL_TOKEN>` — used by the browser and SSE connections
-- **Bearer header**: `Authorization: Bearer <TUNNEL_TOKEN>` — used by API clients
+- **URL query parameter**: `?token=<REMOTE_TOKEN>` — used by the browser and SSE connections
+- **Bearer header**: `Authorization: Bearer <REMOTE_TOKEN>` — used by API clients
 
-If `TUNNEL_TOKEN` is **not** set and a tunnel is active, QuantWise will warn:
+If `REMOTE_TOKEN` is **not** set and a tunnel is active, QuantWise will warn:
 
 ```
-⚠ WARNING: No TUNNEL_TOKEN set — public URL is open to anyone.
-  Set TUNNEL_TOKEN=<secret> before starting to require authentication.
+⚠ WARNING: No REMOTE_TOKEN set — public URL is open to anyone.
+  Set REMOTE_TOKEN=<secret> before starting to require authentication.
 ```
 
 ### Example
 
 ```bash
-export TUNNEL_TOKEN="mysecret"
+export REMOTE_TOKEN="mysecret"
 ```
 
 ```
@@ -176,7 +176,7 @@ The built-in web interface includes:
 | Variable | Required | Description |
 |----------|----------|-------------|
 | `TUNNEL_URL` | No | Public tunnel URL. When set, `cloudflared` is launched automatically. |
-| `TUNNEL_TOKEN` | No | Secret token for API authentication. Strongly recommended when using a tunnel. |
+| `REMOTE_TOKEN` | No | Secret token for API authentication. Strongly recommended when using a tunnel. |
 
 ## Use Cases
 
@@ -198,7 +198,7 @@ Open the local URL on your phone and run commands:
 
 ```bash
 export TUNNEL_URL="https://my-quantwise.example.com"
-export TUNNEL_TOKEN="my-secret-123"
+export REMOTE_TOKEN="my-secret-123"
 ```
 
 ```
@@ -229,17 +229,17 @@ Receive push alerts via Telegram, then dig deeper via the web UI.
 | Feature | Detail |
 |---------|--------|
 | **LAN Only by Default** | No internet exposure unless `TUNNEL_URL` is configured |
-| **Token Auth** | `TUNNEL_TOKEN` enforces Bearer authentication on all API endpoints |
+| **Token Auth** | `REMOTE_TOKEN` enforces Bearer authentication on all API endpoints |
 | **Session Token Storage** | Token stored in `sessionStorage` (cleared on tab close) |
 | **SSE Keepalive** | 30-second heartbeat keeps connections alive |
-| **CORS Enabled** | All origins allowed — access controlled via `TUNNEL_TOKEN` |
+| **CORS Enabled** | All origins allowed — access controlled via `REMOTE_TOKEN` |
 
 ### Best Practices
 
-- **Always set `TUNNEL_TOKEN`** when using a public tunnel — without it, anyone with the URL has full session access.
+- **Always set `REMOTE_TOKEN`** when using a public tunnel — without it, anyone with the URL has full session access.
 - **Use HTTPS tunnels** — plain HTTP is fine on trusted LANs, but always use HTTPS for internet access.
 - **Stop when done** — run `/remote-control stop` or close QuantWise to terminate.
-- **Rotate tokens** — change `TUNNEL_TOKEN` periodically for long-running setups.
+- **Rotate tokens** — change `REMOTE_TOKEN` periodically for long-running setups.
 
 ## Troubleshooting
 
@@ -251,4 +251,4 @@ Receive push alerts via Telegram, then dig deeper via the web UI.
 | Tunnel not registering | Check `~/.cloudflared/config.yml` and credentials file |
 | 401 Unauthorized | Pass token via `?token=...` or `Authorization: Bearer ...` header |
 | SSE disconnects | Normal — the client auto-reconnects. Check network stability. |
-| `⚠ No TUNNEL_TOKEN set` | Set `export TUNNEL_TOKEN="..."` before starting |
+| `⚠ No REMOTE_TOKEN set` | Set `export REMOTE_TOKEN="..."` before starting |
