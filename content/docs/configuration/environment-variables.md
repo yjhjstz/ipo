@@ -54,7 +54,6 @@ When both are set, the Telegram bot **auto-starts** with QuantWise — no need t
 
 | Variable | Description |
 |----------|-------------|
-| `TUNNEL_URL` | Public tunnel URL — when set, `cloudflared` is launched automatically |
 | `REMOTE_TOKEN` | Secret token for remote control API authentication (strongly recommended) |
 
 ## Browser Relay
