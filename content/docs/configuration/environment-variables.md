@@ -38,8 +38,10 @@
 | `FMP_API_KEY` | Financial Modeling Prep API key (for trading skills) |
 | `TAVILY_API_KEY` | Tavily web search API key |
 | `GROQ_API_KEY` | Groq fast inference API key |
-| `TELEGRAM_BOT_TOKEN` | Telegram bot token for notifications |
-| `TELEGRAM_OWNER_CHAT_ID` | Telegram owner chat ID |
+| `TELEGRAM_BOT_TOKEN` | Telegram bot token for notifications (auto-starts bot if set with chat ID) |
+| `TELEGRAM_OWNER_CHAT_ID` | Telegram owner chat ID (numeric) |
+| `TUNNEL_URL` | Public tunnel URL for `/remote-control` internet access |
+| `TUNNEL_TOKEN` | Secret token for remote control API authentication |
 | `BROWSER_RELAY_TOKEN` | Browser relay authentication token |
 | `BROWSER_RELAY_PORT` | Browser relay port (default: `18792`) |
 

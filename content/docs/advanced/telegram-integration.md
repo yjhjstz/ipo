@@ -25,8 +25,10 @@ Add to your `.env` or environment variables:
 
 ```bash
 TELEGRAM_BOT_TOKEN="your-bot-token"
-TELEGRAM_CHAT_ID="your-chat-id"
+TELEGRAM_OWNER_CHAT_ID="your-chat-id"
 ```
+
+> **Note:** When both variables are set, the Telegram bot auto-starts with QuantWise — no need to run `/telegram start` manually.
 
 ### 3. Start the Bot
 
