@@ -1,6 +1,6 @@
 # Built-in Tools
 
-QuantWise includes 24 built-in tools that Claude can use to interact with your system.
+QuantWise includes 23+ built-in tools that Claude can use to interact with your system.
 
 ## File & Directory
 
@@ -135,6 +135,16 @@ Log reasoning thoughts (extended thinking).
 ```
 Parameters: thought (required)
 ```
+- Enable via `THINK_TOOL=1` or model config
+- Token limit controlled by `MAX_THINKING_TOKENS`
+
+### Architect
+Code architecture analysis tool.
+```
+Parameters: prompt (required)
+```
+- Enabled per project via `enableArchitectTool: true` in config
+- Provides high-level architectural guidance
 
 ## Notebook
 
@@ -146,6 +156,25 @@ Parameters: notebook_path (required)
 
 ### EditNotebook
 Modify Jupyter notebook cells.
+```
+Parameters: notebook_path (required), cell_number, new_source, edit_mode
+```
+
+## Memory
+
+### MemoryRead
+Read from persistent memory store.
+```
+Parameters: query (required)
+```
+- Accesses auto-memory directory
+
+### MemoryWrite
+Write to persistent memory store.
+```
+Parameters: content (required), topic (optional)
+```
+- Stores information across sessions
 
 ## Automation
 
@@ -156,3 +185,5 @@ Parameters: action ("create"|"list"|"delete"), cron, prompt, recurring
 ```
 - 5-field cron expressions
 - Tracks next/last execution times
+- Persists to `.claude/cron-tasks.json`
+- Deterministic jitter (±10% of period, max 15 min)

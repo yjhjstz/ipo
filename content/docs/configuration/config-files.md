@@ -11,6 +11,8 @@ QuantWise uses several configuration files stored in `~/.claude/` (or `$CLAUDE_C
 ├── settings.local.json      # Permission overrides
 ├── cron-tasks.json          # Scheduled tasks
 ├── plugins.json             # Installed plugins
+├── conversations.json       # Conversation index (titles + timestamps)
+├── messages/                # Conversation message logs (by session ID)
 ├── skills/                  # Custom skills
 ├── agents/                  # Custom agents
 ├── commands/                # Legacy custom commands
@@ -29,6 +31,8 @@ Global configuration and per-project settings.
   "model": "claude-sonnet-4-5-20250929",
   "preferredNotifChannel": "iterm2",
   "hasCompletedOnboarding": true,
+  "defaultPermissionMode": "default",
+  "outputStyle": "default",
   "projects": {
     "/path/to/project": {
       "allowedTools": ["Bash(git:*)"],
@@ -43,10 +47,14 @@ Global configuration and per-project settings.
 
 | Key | Type | Description |
 |-----|------|-------------|
-| `theme` | `"dark"` \| `"light"` | Terminal theme |
+| `theme` | `"dark"` \| `"light"` \| `"auto"` | Terminal theme |
 | `verbose` | boolean | Enable verbose logging |
 | `model` | string | Default model (set via `/model`) |
-| `preferredNotifChannel` | string | Notification method: `iterm2`, `terminal_bell`, `iterm2_with_bell`, `notifications_disabled` |
+| `preferredNotifChannel` | string | `iterm2`, `terminal_bell`, `iterm2_with_bell`, `notifications_disabled` |
+| `defaultPermissionMode` | string | `default`, `auto-accept-edits`, `plan-mode` |
+| `outputStyle` | string | `default`, `concise`, `explanatory`, `learning` |
+| `thinkingEnabled` | boolean | Enable extended thinking |
+| `mcpServers` | object | Global MCP server configurations |
 
 ### Per-Project Settings
 
@@ -57,8 +65,33 @@ Global configuration and per-project settings.
 | `simpleMode` | boolean | Disable advanced features |
 | `dontCrawlDirectory` | boolean | Skip directory crawling for context |
 | `mcpServers` | object | Project-specific MCP servers |
+| `contextFiles` | string[] | Additional context files to load |
+| `model` | string | Project-level model override |
 
 Use `/config` to edit these settings interactively.
+
+## Project Config (.claude/config.json)
+
+Project-level configuration stored in the project's `.claude/` directory.
+
+```json
+{
+  "allowedTools": ["Bash(git:*)"],
+  "mcpServers": {},
+  "disabledMcpServers": [],
+  "history": [],
+  "context": {}
+}
+```
+
+| Key | Type | Description |
+|-----|------|-------------|
+| `allowedTools` | string[] | Approved tools for this project |
+| `mcpServers` | object | Project MCP servers |
+| `disabledMcpServers` | string[] | Disabled MCP server names |
+| `mcpContextUris` | string[] | MCP context URIs to load |
+| `exampleFiles` | string[] | Example files for context |
+| `hasTrustDialogAccepted` | boolean | Whether project trust was accepted |
 
 ## settings.local.json
 
@@ -87,7 +120,9 @@ Scheduled automation tasks created via CronTool or `/loop`.
     "cron": "0 */6 * * *",
     "prompt": "/market-top-detector",
     "recurring": true,
-    "nextFireAt": 1700000000000
+    "createdAt": 1700000000000,
+    "lastFiredAt": 1700003600000,
+    "nextFireAt": 1700007200000
   }
 ]
 ```
@@ -109,3 +144,41 @@ Project-level instructions for QuantWise. Place in your project root. Created vi
 ```
 
 QuantWise reads this file automatically to understand your project's conventions.
+
+## Skills Directory
+
+Custom skills are stored as directories with a `SKILL.md` file:
+
+```
+~/.claude/skills/
+└── my-skill/
+    └── SKILL.md
+```
+
+### SKILL.md Frontmatter
+
+```yaml
+---
+name: my-skill
+description: What this skill does
+user-invocable: true
+allowed-tools: Read, Grep, Glob
+model: sonnet
+context: inline
+argument-hint: <symbol>
+---
+
+Skill instructions here...
+```
+
+| Key | Default | Description |
+|-----|---------|-------------|
+| `name` | filename | Display name |
+| `description` | - | Skill description |
+| `user-invocable` | `true` | Can be invoked via `/skill-name` |
+| `disable-model-invocation` | `false` | Prevent AI from auto-invoking |
+| `allowed-tools` | all | Comma-separated tool list |
+| `model` | inherit | `sonnet`, `opus`, `haiku`, or model ID |
+| `context` | `inline` | `inline` (same context) or `fork` (new context) |
+| `agent` | - | Agent to delegate to |
+| `argument-hint` | - | Hint shown in command list (e.g., `<symbol>`) |
