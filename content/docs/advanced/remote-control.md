@@ -1,6 +1,8 @@
 # Remote Control
 
-The `/remote-control` command starts an HTTP server and exposes your QuantWise session to the internet via a Cloudflare tunnel. This lets you interact with QuantWise from a phone, tablet, or any device with a web browser — no VPN or port forwarding needed.
+The `/remote-control` command starts an HTTP server that lets you interact with your QuantWise session from a phone, tablet, or any device with a web browser on the same network.
+
+Optionally, set the `TUNNEL_URL` environment variable to expose your session to the internet via a tunnel service.
 
 ## Quick Start
 
@@ -10,17 +12,15 @@ The `/remote-control` command starts an HTTP server and exposes your QuantWise s
 
 QuantWise will:
 1. Start a local HTTP server (default port: `3100`)
-2. Create a Cloudflare tunnel to generate a public URL
-3. Display the URL and access credentials
+2. Display the local access URL
 
 ```
 Remote Control started!
-  Local:  http://localhost:3100
-  Public: https://xxxx-xxxx-xxxx.trycloudflare.com
+  Local:  http://192.168.1.100:3100
   Auth:   your-generated-token
 ```
 
-Open the public URL on any device to access your session.
+Open the URL on any device in your local network to access your session.
 
 ## Syntax
 
@@ -32,68 +32,80 @@ Open the public URL on any device to access your session.
 |----------|---------|-------------|
 | `port` | `3100` | Local HTTP server port |
 
-## Prerequisites
+## Access Modes
 
-### Cloudflare Tunnel (cloudflared)
+### LAN Access (Default)
 
-The tunnel requires `cloudflared` to be installed on your machine.
-
-**macOS:**
-
-```bash
-brew install cloudflared
-```
-
-**Linux:**
-
-```bash
-# Debian/Ubuntu
-curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64.deb -o cloudflared.deb
-sudo dpkg -i cloudflared.deb
-
-# Or download the binary directly
-curl -L https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64 -o /usr/local/bin/cloudflared
-chmod +x /usr/local/bin/cloudflared
-```
-
-**Windows:**
-
-```powershell
-winget install Cloudflare.cloudflared
-```
-
-No Cloudflare account is required — the free "quick tunnel" feature is used automatically.
-
-## How It Works
+By default, `/remote-control` starts an HTTP server accessible within your local network. Any device on the same Wi-Fi or LAN can connect.
 
 ```
-Your Phone / Any Browser
-    ↕ HTTPS
-Cloudflare Edge Network
-    ↕ Encrypted tunnel
-cloudflared (local daemon)
+Your Phone (same Wi-Fi)
     ↕ HTTP
-QuantWise HTTP Server (localhost:3100)
+QuantWise HTTP Server (192.168.x.x:3100)
     ↕
 QuantWise CLI Session
 ```
 
-1. QuantWise spawns a lightweight HTTP server that accepts text prompts and returns responses.
-2. `cloudflared` creates a free tunnel from the Cloudflare edge to your local server.
-3. The generated URL (e.g., `https://xxxx.trycloudflare.com`) is publicly accessible.
-4. An auth token is generated for each session to prevent unauthorized access.
+No additional software or configuration is needed.
+
+### Internet Access (via TUNNEL_URL)
+
+To access QuantWise from outside your local network, configure a tunnel service by setting the `TUNNEL_URL` environment variable. This works with any tunnel provider — Cloudflare Tunnel, ngrok, frp, or similar.
+
+```bash
+export TUNNEL_URL="https://your-tunnel-url.example.com"
+```
+
+When `TUNNEL_URL` is set, `/remote-control` will display both local and public URLs:
+
+```
+Remote Control started!
+  Local:  http://192.168.1.100:3100
+  Public: https://your-tunnel-url.example.com
+  Auth:   your-generated-token
+```
+
+#### Tunnel Setup Examples
+
+**Cloudflare Tunnel (free, no account required):**
+
+```bash
+# Install cloudflared
+brew install cloudflared          # macOS
+# or
+sudo apt install cloudflared      # Debian/Ubuntu
+
+# Start a quick tunnel
+cloudflared tunnel --url http://localhost:3100
+
+# Copy the generated URL and set it
+export TUNNEL_URL="https://xxxx-xxxx.trycloudflare.com"
+```
+
+**ngrok:**
+
+```bash
+ngrok http 3100
+
+# Copy the forwarding URL
+export TUNNEL_URL="https://xxxx.ngrok-free.app"
+```
+
+**frp (self-hosted):**
+
+Configure your `frpc.toml` to forward port `3100`, then set `TUNNEL_URL` to your frp server's public address.
 
 ## Use Cases
 
 ### Mobile Trading Terminal
 
-Access your QuantWise trading tools from your phone:
+Access your QuantWise trading tools from your phone on the same network:
 
 ```
 /remote-control
 ```
 
-Then on your phone, open the public URL and run commands:
+Then on your phone, open the local URL and run commands:
 
 ```
 /stock AAPL
@@ -103,35 +115,31 @@ Then on your phone, open the public URL and run commands:
 
 ### Shared Analysis Session
 
-Share the URL with a colleague for collaborative market analysis. Both of you see the same session in real time.
+Share the URL with a colleague on the same network for collaborative market analysis.
 
 ### Remote Monitoring
 
-Combine with `/loop` to set up background tasks, then check results remotely:
+Combine with `/loop` to set up background tasks, then check results from any device:
 
 ```
 /loop 1h /market-top-detector
 /remote-control
 ```
 
-Monitor market conditions from anywhere via the tunnel URL.
-
 ## Security
 
 | Feature | Detail |
 |---------|--------|
-| **Transport** | HTTPS via Cloudflare — all traffic encrypted end-to-end |
 | **Auth Token** | Random token generated per session, required for all requests |
-| **Local Only** | The HTTP server binds to localhost — no direct network exposure |
-| **Ephemeral URL** | Tunnel URL changes each time, cannot be guessed |
-| **No Account Required** | Uses Cloudflare's free quick tunnel — no signup needed |
+| **LAN Only by Default** | No internet exposure unless you configure `TUNNEL_URL` |
+| **Transport** | Use HTTPS tunnels for internet access to encrypt traffic |
 
 ### Best Practices
 
 - **Don't share the URL publicly** — anyone with the URL and token can execute commands in your session.
-- **Stop the tunnel when done** — close QuantWise or use `Ctrl+C` to terminate.
-- **Use over trusted networks** — while traffic is encrypted, the session has full access to your machine.
-- **Rotate sessions** — each new `/remote-control` invocation generates a fresh URL and token.
+- **Stop the server when done** — close QuantWise or use `Ctrl+C` to terminate.
+- **Use HTTPS tunnels for internet access** — plain HTTP is fine on trusted LANs, but always use an HTTPS tunnel for remote access.
+- **Rotate sessions** — each new `/remote-control` invocation generates a fresh auth token.
 
 ## Combining with Telegram
 
@@ -150,13 +158,18 @@ For maximum flexibility, use both remote control and Telegram:
 
 This way you receive push notifications via Telegram and can dig deeper via the remote control web interface.
 
+## Environment Variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `TUNNEL_URL` | No | Public tunnel URL for internet access. When not set, only LAN access is available. |
+
 ## Troubleshooting
 
 | Issue | Solution |
 |-------|----------|
-| `cloudflared: command not found` | Install cloudflared (see Prerequisites above) |
 | Port already in use | Specify a different port: `/remote-control 3200` |
-| Tunnel URL not generated | Check your internet connection; cloudflared needs outbound HTTPS access |
-| Connection refused on mobile | Ensure you're using the `https://...trycloudflare.com` URL, not `localhost` |
-| Slow response | Tunnel adds ~50-100ms latency; this is normal for free tunnels |
-| Session expired | Tunnels may timeout after extended inactivity; restart with `/remote-control` |
+| Can't connect from phone | Ensure both devices are on the same Wi-Fi network |
+| Connection refused | Check firewall settings — port `3100` must be open for LAN traffic |
+| Tunnel not working | Verify your tunnel service is running and `TUNNEL_URL` is set correctly |
+| Session expired | The server stops when QuantWise exits; restart with `/remote-control` |
