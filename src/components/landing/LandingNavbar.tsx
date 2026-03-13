@@ -6,7 +6,6 @@ import { Zap, Menu, X, Github } from 'lucide-react'
 
 const NAV_LINKS = [
   { href: '/#features', label: 'Features' },
-  { href: '/#telegram-bot', label: 'Telegram Bot' },
   { href: '/#architecture', label: 'Architecture' },
   { href: '/docs', label: 'Docs' },
   { href: '/chrome-extension', label: 'Extension' },
