@@ -22,7 +22,8 @@ QuantWise includes a native macOS menubar application — a companion frontend t
 ## Build & Run
 
 ```bash
-cd apps/macos
+git clone https://github.com/quantumiodb/quantwise.git
+cd quantwise/apps/macos
 
 # Development (debug build + run)
 make dev
