@@ -192,7 +192,7 @@ export default function DocsViewer({ categories, docs }: DocsViewerProps) {
                 hr: () => <hr className="my-8 border-white/10" />,
                 img: ({ src, alt }) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={src} alt={alt || ''} className="rounded-xl border border-white/10 my-4 max-w-[280px] shadow-lg shadow-black/30" />
+                  <img src={src} alt={alt || ''} className="inline-block rounded-lg border border-white/10 my-2 mr-2 w-[140px] shadow-md shadow-black/30 align-top" />
                 ),
               }}
             >
