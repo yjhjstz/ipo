@@ -21,7 +21,11 @@ Local:  http://192.168.1.100:3001
 Stop with: /remote-control stop
 ```
 
-Open the URL on any device to access the web UI.
+Open the URL on any device to access the web UI. If `TUNNEL_TOKEN` is set, append it to the URL:
+
+```
+http://192.168.1.100:3001/?token=mysecret
+```
 
 ## Syntax
 
@@ -103,26 +107,46 @@ export TUNNEL_TOKEN="your-secret-token"   # Strongly recommended
 
 ## Authentication (TUNNEL_TOKEN)
 
-When `TUNNEL_TOKEN` is set, all API requests (except the HTML page at `/`) require authentication.
+When `TUNNEL_TOKEN` is set, all API requests (except the initial HTML page load at `/`) require authentication. This means you **must include the token in the URL** when opening the web UI in a browser or on your phone.
 
-If `TUNNEL_TOKEN` is **not** set and the tunnel is active, QuantWise will warn:
+### Accessing from Browser / Phone
+
+Append `?token=<your-token>` to the URL:
+
+```
+http://10.0.0.243:3001/?token=mysecret
+```
+
+The web UI reads the token from the URL on first load and stores it in `sessionStorage`. After that, all subsequent API calls (message fetch, chat submit, SSE stream) are automatically authenticated — you don't need to pass the token again until you close the tab.
+
+### How It Works
+
+The server checks authentication on all endpoints except `GET /` (the HTML page itself):
+
+- **URL query parameter**: `?token=<TUNNEL_TOKEN>` — used by the browser and SSE connections
+- **Bearer header**: `Authorization: Bearer <TUNNEL_TOKEN>` — used by API clients
+
+If `TUNNEL_TOKEN` is **not** set and a tunnel is active, QuantWise will warn:
 
 ```
 ⚠ WARNING: No TUNNEL_TOKEN set — public URL is open to anyone.
   Set TUNNEL_TOKEN=<secret> before starting to require authentication.
 ```
 
-### How Authentication Works
+### Example
 
-Requests are authenticated via either method:
-
-- **Bearer header**: `Authorization: Bearer <TUNNEL_TOKEN>`
-- **URL query parameter**: `?token=<TUNNEL_TOKEN>` (useful for browser/SSE connections)
-
-The web UI automatically stores the token in `sessionStorage` after loading from the URL parameter, so you only need to pass it once:
+```bash
+export TUNNEL_TOKEN="mysecret"
+```
 
 ```
-https://your-tunnel.example.com?token=your-secret-token
+/remote-control
+```
+
+Then open on your phone:
+
+```
+http://192.168.1.100:3001/?token=mysecret
 ```
 
 ## Web UI Features
