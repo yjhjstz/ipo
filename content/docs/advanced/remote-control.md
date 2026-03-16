@@ -186,6 +186,18 @@ Use both remote control and Telegram for full coverage:
 
 Receive push alerts via Telegram, then dig deeper via the web UI.
 
+### Start Remote Control from Telegram Bot
+
+After running `/telegram set-menu`, the Telegram bot menu includes a **`/remote_control`** command. Sending it from your phone directly starts the remote control server — no need to type in the terminal.
+
+```
+Telegram: /remote_control
+→ Bot replies: HTTP server started on port 3001
+               Local: http://192.168.1.100:3001
+```
+
+This works because Telegram local commands (`/remote_control`, `/deep_research`, etc.) are dispatched directly to QuantWise's command system, bypassing the LLM. The response is sent back to your Telegram chat immediately.
+
 ## Security
 
 | Feature | Detail |

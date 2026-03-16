@@ -1,151 +1,128 @@
-# Browser Relay & Chrome Extension
+# Browser Control & Chrome CDP
 
-QuantWise Browser Relay connects QuantWise to your Chrome browser via the Chrome DevTools Protocol (CDP), enabling browser automation, screenshot capture, and web interaction — all controlled from natural language commands.
+QuantWise supports two methods to control Chrome via the Chrome DevTools Protocol (CDP), enabling screenshots, clicks, form input, and JavaScript execution through natural language commands.
 
-## Architecture
+## Connection Methods
 
-```
-QuantWise CLI (BrowserTool)
-    ↕ CDP commands / events
-Browser Relay Server (ws://127.0.0.1:18792)
-    ↕ WebSocket
-Chrome Extension (background service worker)
-    ↕ chrome.debugger API
-Chrome Browser Tab (attached)
-```
+### Method A: Chrome 144+ Direct Connection (Recommended)
 
-## Prerequisites
+**No extension required.** Chrome 144+ has a built-in remote debugging server that QuantWise can connect to directly.
 
-- Google Chrome or Chromium-based browser
-- QuantWise with `BROWSER_RELAY_TOKEN` configured
-- The QuantWise Browser Relay Chrome extension installed
+#### Step 1: Enable Remote Debugging in Chrome
 
-## Chrome Extension Installation
+Navigate to `chrome://inspect#remote-debugging` and check **"Allow remote debugging for this browser instance"**.
 
-The extension source is located at `assets/chrome-extension/`.
+Chrome will display `Server running at: 127.0.0.1:9222`.
 
-### Step 1: Open Chrome Extensions Page
+#### Step 2: Configure Environment Variable
 
-Navigate to `chrome://extensions/` in your Chrome browser.
-
-### Step 2: Enable Developer Mode
-
-Toggle **"Developer mode"** switch in the top-right corner.
-
-### Step 3: Load the Extension
-
-1. Click **"Load unpacked"**
-2. Select the `assets/chrome-extension/` directory from your QuantWise installation
-3. The **QuantWise Browser Relay** extension will appear in your extensions list
-
-### Step 4: Pin the Extension (Recommended)
-
-Click the puzzle icon in Chrome's toolbar, then click the pin icon next to **QuantWise Browser Relay** for quick access.
-
-## Configuration
-
-### Environment Variables
-
-Set these in your `.env` or shell environment:
+Add to your `.env`:
 
 ```bash
-BROWSER_RELAY_TOKEN="your-secret-token"    # Required — shared auth token
-BROWSER_RELAY_PORT=18792                   # Optional — default: 18792
+BROWSER_CDP_ENDPOINT=http://127.0.0.1:9222
 ```
 
-### Chrome Extension Settings
+QuantWise connects automatically on startup.
 
-1. Right-click the extension icon → **"Options"** (or click the puzzle icon → QuantWise Browser Relay → three dots → Options)
-2. Set **Relay Port**: must match `BROWSER_RELAY_PORT` (default: `18792`)
-3. Set **Auth Token**: must match `BROWSER_RELAY_TOKEN` exactly
-4. Click **Save**
-
-> **Important**: The token in the extension options must match the `BROWSER_RELAY_TOKEN` environment variable exactly, otherwise authentication will fail.
-
-## Usage
-
-### Step 1: Start the Relay Server
-
-In QuantWise:
+#### Step 3: Use Browser Commands
 
 ```
-/browser start
+/browser connect          # Manual connect (skip if env var is set)
+/browser status           # Show connection status
+/browser tabs             # List all open tabs
+/browser switch <id>      # Switch to a specific tab
 ```
 
-### Step 2: Attach to a Browser Tab
-
-1. Navigate to the target webpage in Chrome
-2. Click the **QuantWise Browser Relay** extension icon
-3. The badge turns **green (ON)** — the debugger is now attached to this tab
-
-### Step 3: Use Browser Commands
-
-Now QuantWise can control the attached tab:
+Once connected, control the browser with natural language:
 
 ```
 "Take a screenshot of this page"
-"Click the login button"
-"Type 'hello' into the search box"
-"Get the page content"
 "Navigate to https://finance.yahoo.com"
-"Evaluate document.title in the console"
+"Click the search box and type NVDA"
+"Get the page content"
+"Evaluate document.title"
 ```
 
-### Step 4: Detach / Stop
+---
 
-- **Detach tab**: Click the extension icon again (toggles off)
-- **Stop relay**: `/browser stop`
-- **Check status**: `/browser status`
+### Method B: Chrome Extension Relay (Legacy)
 
-## Extension Badge Status
+Bridges CDP through a QuantWise Chrome extension. Suitable for older Chrome versions or when fine-grained tab control is needed.
 
-| Badge | Color | Meaning |
-|-------|-------|---------|
-| **ON** | Green | Debugger attached, WebSocket connected, authenticated |
-| **!** | Red | Error — check token, port, or relay server status |
-| *(empty)* | Gray | Not attached to any tab |
+#### Configuration
+
+```bash
+BROWSER_RELAY_TOKEN="your-secret-token"    # Required
+BROWSER_RELAY_PORT=18792                   # Optional, default: 18792
+```
+
+#### Extension Installation
+
+1. Open `chrome://extensions/` → enable **Developer mode**
+2. Click **Load unpacked** → select the `assets/chrome-extension/` directory
+3. In extension options, set the Port and Token to match your environment variables
+
+#### Usage
+
+```
+/browser start            # Start the relay server
+```
+
+Then click the extension icon to attach to the target tab (icon turns green when connected).
+
+---
+
+## Architecture Comparison
+
+```
+Method A (Direct):
+QuantWise CLI ──WebSocket──> Chrome CDP (127.0.0.1:9222)
+                              └─> Any Tab
+
+Method B (Extension Relay):
+QuantWise CLI ──WebSocket──> Relay Server (127.0.0.1:18792)
+                              └─WebSocket──> Chrome Extension
+                                             └─ chrome.debugger API ──> Tab
+```
 
 ## BrowserTool Actions
 
-The BrowserTool supports these CDP actions:
+| Action | Description | Returns |
+|--------|-------------|---------|
+| `navigate` | Go to a URL and wait for page load | Page title |
+| `screenshot` | Capture screenshot to `/tmp/` | File path (no image tokens consumed) |
+| `click` | Click an element by CSS selector | Element info |
+| `type` | Type text (optionally focus via selector first) | Confirmation |
+| `evaluate` | Execute JavaScript in the page | Return value (truncated to 4000 chars) |
+| `getContent` | Get `document.body.innerText` | Page text (truncated to 8000 chars) |
 
-| Action | Description |
-|--------|-------------|
-| `navigate` | Go to a URL |
-| `screenshot` | Capture page screenshot |
-| `click` | Click an element |
-| `type` | Type text into an input |
-| `evaluate` | Execute JavaScript in the page |
-| `getContent` | Get page HTML/text content |
+## Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `BROWSER_CDP_ENDPOINT` | Direct mode, e.g. `http://127.0.0.1:9222` |
+| `BROWSER_RELAY_TOKEN` | Extension relay auth token |
+| `BROWSER_RELAY_PORT` | Relay server port, default `18792` |
+
+Both can be configured simultaneously. Direct mode takes priority.
+
+## Token Cost Reference
+
+| Operation | Estimated Tokens |
+|-----------|-----------------|
+| navigate / click / type | ~30 tokens |
+| screenshot (text reply only) | ~50 tokens |
+| View screenshot via FileRead | ~1,600 tokens |
+| getContent (full page text) | ~2,000 tokens |
+| evaluate result | ~200–1,000 tokens |
+
+> **Tip:** Use `evaluate` to extract specific data precisely instead of taking screenshots. Reserve screenshots for cases where you need to visually inspect the page layout.
 
 ## Troubleshooting
 
-### Badge shows "!" (Error)
-
-1. **Token mismatch**: Verify the token in extension options matches `BROWSER_RELAY_TOKEN`
-2. **Relay not running**: Run `/browser start` in QuantWise first
-3. **Port conflict**: Ensure the port matches between extension options and `BROWSER_RELAY_PORT`
-
-### WebSocket disconnects
-
-The extension handles reconnection automatically with exponential backoff (up to 5 attempts). The MV3 service worker uses a keepalive alarm every 25 seconds to prevent Chrome from killing the background worker.
-
-### Tab navigation breaks connection
-
-The extension automatically tracks URL/title changes via `chrome.webNavigation`. If the tab is closed, the extension cleans up and disconnects gracefully.
-
-### Cannot attach debugger
-
-- Chrome DevTools may already be open for that tab — close DevTools first
-- Some Chrome internal pages (`chrome://`, `chrome-extension://`) cannot be debugged
-- Only one debugger session per tab is allowed
-
-## Technical Details
-
-- **Manifest Version**: 3 (MV3)
-- **Permissions**: `debugger`, `tabs`, `activeTab`, `storage`, `alarms`, `webNavigation`
-- **Host Permissions**: `http://127.0.0.1/*` (local relay server only)
-- **CDP Version**: 1.3
-- **Reconnect Strategy**: Exponential backoff, base 200ms, max 5 attempts
-- **State Persistence**: `chrome.storage.session` (survives service worker restarts)
-- **Config Storage**: `chrome.storage.local` (persists across browser sessions)
+| Issue | Solution |
+|-------|----------|
+| `/browser connect` fails | Confirm Chrome remote debugging is enabled and shows `127.0.0.1:9222` |
+| Extension icon shows "!" | Token or port mismatch — check extension options vs. environment variables |
+| Cannot attach debugger | Close DevTools for that tab; `chrome://` internal pages cannot be debugged |
+| WebSocket disconnects | Extension auto-reconnects; direct mode recovers on the next command |
