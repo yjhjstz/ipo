@@ -111,8 +111,7 @@ Control a browser via Chrome DevTools Protocol.
 ```
 Parameters: action ("navigate"|"click"|"type"|"screenshot"|"evaluate"|"getContent")
 ```
-- Requires Browser Relay connection (`BROWSER_RELAY_TOKEN`)
-- Chrome extension integration
+- Requires Chrome remote debugging enabled (`BROWSER_CDP_ENDPOINT`)
 
 ## AI & Agent
 

@@ -45,44 +45,11 @@ Once connected, control the browser with natural language:
 
 ---
 
-### Method B: Chrome Extension Relay (Legacy)
-
-Bridges CDP through a QuantWise Chrome extension. Suitable for older Chrome versions or when fine-grained tab control is needed.
-
-#### Configuration
-
-```bash
-BROWSER_RELAY_TOKEN="your-secret-token"    # Required
-BROWSER_RELAY_PORT=18792                   # Optional, default: 18792
-```
-
-#### Extension Installation
-
-1. Open `chrome://extensions/` → enable **Developer mode**
-2. Click **Load unpacked** → select the `assets/chrome-extension/` directory
-3. In extension options, set the Port and Token to match your environment variables
-
-#### Usage
+## Architecture
 
 ```
-/browser start            # Start the relay server
-```
-
-Then click the extension icon to attach to the target tab (icon turns green when connected).
-
----
-
-## Architecture Comparison
-
-```
-Method A (Direct):
 QuantWise CLI ──WebSocket──> Chrome CDP (127.0.0.1:9222)
                               └─> Any Tab
-
-Method B (Extension Relay):
-QuantWise CLI ──WebSocket──> Relay Server (127.0.0.1:18792)
-                              └─WebSocket──> Chrome Extension
-                                             └─ chrome.debugger API ──> Tab
 ```
 
 ## BrowserTool Actions
@@ -101,10 +68,6 @@ QuantWise CLI ──WebSocket──> Relay Server (127.0.0.1:18792)
 | Variable | Description |
 |----------|-------------|
 | `BROWSER_CDP_ENDPOINT` | Direct mode, e.g. `http://127.0.0.1:9222` |
-| `BROWSER_RELAY_TOKEN` | Extension relay auth token |
-| `BROWSER_RELAY_PORT` | Relay server port, default `18792` |
-
-Both can be configured simultaneously. Direct mode takes priority.
 
 ## Token Cost Reference
 
@@ -123,6 +86,5 @@ Both can be configured simultaneously. Direct mode takes priority.
 | Issue | Solution |
 |-------|----------|
 | `/browser connect` fails | Confirm Chrome remote debugging is enabled and shows `127.0.0.1:9222` |
-| Extension icon shows "!" | Token or port mismatch — check extension options vs. environment variables |
 | Cannot attach debugger | Close DevTools for that tab; `chrome://` internal pages cannot be debugged |
-| WebSocket disconnects | Extension auto-reconnects; direct mode recovers on the next command |
+| WebSocket disconnects | Recovers on the next command |

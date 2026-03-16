@@ -56,13 +56,6 @@ When both are set, the Telegram bot **auto-starts** with QuantWise — no need t
 |----------|-------------|
 | `REMOTE_TOKEN` | Secret token for remote control API authentication (strongly recommended) |
 
-## Browser Relay
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `BROWSER_RELAY_TOKEN` | - | Auth token shared between QuantWise and Chrome extension |
-| `BROWSER_RELAY_PORT` | `18792` | Browser relay server port |
-
 ## Configuration Paths
 
 | Variable | Default | Description |

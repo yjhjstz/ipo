@@ -8,7 +8,6 @@ const NAV_LINKS = [
   { href: '/#features', label: 'Features' },
   { href: '/#architecture', label: 'Architecture' },
   { href: '/docs', label: 'Docs' },
-  { href: '/chrome-extension', label: 'Extension' },
   { href: '/#get-started', label: 'Quick Start' },
   { href: '/#support', label: 'Support' },
 ]

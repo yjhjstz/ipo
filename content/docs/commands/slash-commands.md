@@ -71,7 +71,6 @@ Type `/` in the interactive session to see all available commands. Commands fall
 
 | Command | Description |
 |---------|-------------|
-| `/browser start\|stop\|status` | Manage Browser Relay server (default port: 18792) |
 | `/remote-control [port]` | Start HTTP server for remote access (default port: 3001) |
 | `/remote-control stop` | Stop remote control server |
 | `/telegram start\|stop\|status\|send` | Manage Telegram bot |
