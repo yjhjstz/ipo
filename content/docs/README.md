@@ -16,12 +16,18 @@ export ANTHROPIC_API_KEY=sk-ant-...
 quantwise
 ```
 
-也支持 [GLM (智谱 BigModel)](configuration/glm-setup.md)：
+Also supports [GLM (智谱 BigModel)](configuration/glm-setup.md) and [Ollama (local models)](configuration/ollama-setup.md):
 
 ```bash
 # GLM via BigModel proxy
 export ANTHROPIC_AUTH_TOKEN=your_zhipu_api_key
 export ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/anthropic
+quantwise
+
+# Ollama (local, e.g. glm-4.7-flash)
+export ANTHROPIC_AUTH_TOKEN=ollama
+export ANTHROPIC_BASE_URL=http://127.0.0.1:11434
+export ANTHROPIC_MODEL=glm-4.7-flash:q4_K_M
 quantwise
 ```
 
