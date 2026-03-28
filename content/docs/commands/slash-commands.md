@@ -67,6 +67,14 @@ Type `/` in the interactive session to see all available commands. Commands fall
 /loop check build                    # defaults to 10m
 ```
 
+## External Agents
+
+| Command | Description |
+|---------|-------------|
+| `/gemini <prompt>` | Send prompt to Google Gemini CLI via [ACP protocol](/advanced/gemini-acp) |
+
+Gemini 自带 Google Search，适合实时数据查询。Skills 可通过 `model: gemini` frontmatter 路由到 Gemini 执行。
+
 ## Infrastructure
 
 | Command | Description |

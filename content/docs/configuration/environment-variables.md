@@ -33,6 +33,14 @@
 | `SOCKS5_PROXY` | - | Alternative SOCKS5 proxy format |
 | `API_TIMEOUT_MS` | `60000` | API request timeout in milliseconds |
 
+## Gemini ACP Integration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model for `/gemini` command and `model: gemini` skills |
+
+See [Gemini ACP Integration](/advanced/gemini-acp) for setup details.
+
 ## External Services
 
 | Variable | Description |
