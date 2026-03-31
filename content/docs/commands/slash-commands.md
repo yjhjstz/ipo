@@ -21,8 +21,6 @@ Type `/` in the interactive session to see all available commands. Commands fall
 | `/config` | Open interactive config panel |
 | `/model` | Select AI model to use |
 | `/init` | Initialize CLAUDE.md with codebase documentation |
-| `/login` | Sign in with Anthropic account |
-| `/logout` | Sign out |
 | `/terminal-setup` | Install Shift+Enter keybinding (iTerm2/VSCode) |
 | `/onboarding` | Run the onboarding wizard |
 
@@ -92,7 +90,6 @@ Gemini 自带 Google Search，适合实时数据查询。Skills 可通过 `model
 | `/mcp` | View and manage MCP servers (connect/disable/explore) |
 | `/plugin` | Manage plugin marketplace |
 | `/agents` | List available agents (built-in, project, user) |
-| `/bug` | Submit feedback |
 
 ## Plugin Management
 

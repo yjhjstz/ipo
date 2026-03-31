@@ -1,29 +1,51 @@
 # Environment Variables
 
-## Core Authentication
-
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `ANTHROPIC_API_KEY` | Yes | Primary API key (`sk-ant-...`) |
-| `ANTHROPIC_API_KEY_OVERRIDE` | No | Override API key (takes priority) |
-| `ANTHROPIC_AUTH_TOKEN` | Alt | OAuth bearer token authentication |
-| `ANTHROPIC_BASE_URL` | No | Custom API endpoint (default: `https://api.anthropic.com`) |
-
-## Model Selection
+## Provider Selection
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ANTHROPIC_MODEL` | Auto | Override main model (e.g., `claude-opus-4-6`, `glm-4.7`) |
-| `ANTHROPIC_DEFAULT_OPUS_MODEL` | - | Opus-tier model override (e.g., `glm-5`) |
-| `ANTHROPIC_DEFAULT_SONNET_MODEL` | - | Sonnet-tier model override (e.g., `glm-4.7`) |
-| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | - | Haiku-tier model override (e.g., `glm-4.5-air`) |
+| `PROVIDER` | auto | Backend provider: `anthropic` or `openai`. Auto-detected from available API keys if not set. |
+
+**Auto-detection logic**: if `OPENAI_API_KEY` is set and no Anthropic credentials are present, defaults to `openai`. Otherwise defaults to `anthropic`.
+
+## Anthropic Backend
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `ANTHROPIC_API_KEY` | Yes | Anthropic API key (`sk-ant-...`) |
+| `ANTHROPIC_API_KEY_OVERRIDE` | No | Override API key (takes priority, used in SWE_BENCH mode) |
+| `ANTHROPIC_BASE_URL` | No | Custom API endpoint (default: `https://api.anthropic.com`) |
+| `ANTHROPIC_MODEL` | No | Override main model (e.g., `claude-opus-4-6`) |
+| `ANTHROPIC_DEFAULT_OPUS_MODEL` | No | Opus-tier model override |
+| `ANTHROPIC_DEFAULT_SONNET_MODEL` | No | Sonnet-tier model override |
+| `ANTHROPIC_DEFAULT_HAIKU_MODEL` | No | Haiku-tier model override |
+| `CLAUDE_CODE_USE_BEDROCK` | No | Enable AWS Bedrock backend |
+| `CLAUDE_CODE_USE_VERTEX` | No | Enable Google Vertex AI backend |
+| `CLOUD_ML_REGION` | `us-east5` | GCP region for Vertex AI |
+
+## OpenAI-Compatible Backend
+
+Use with any OpenAI-compatible API (OpenAI, AnyRouter, local servers, etc.).
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `OPENAI_API_KEY` | Yes | API key for the OpenAI-compatible provider |
+| `OPENAI_BASE_URL` | `https://api.openai.com/v1` | Custom API endpoint |
+| `OPENAI_MODEL` | - | Override main model (e.g., `gpt-4.1`) |
+| `OPENAI_DEFAULT_MODEL` | `gpt-4.1` | Default primary model |
+| `OPENAI_SMALL_MODEL` | - | Haiku-tier model override |
+| `OPENAI_DEFAULT_HAIKU_MODEL` | `gpt-4.1-mini` | Default haiku-tier (fast) model |
+
+> For Anthropic-compatible proxies (GLM, Ollama via Anthropic adapter, AnyRouter), use the `ANTHROPIC_*` variables instead, since they speak the Anthropic API format.
+
+## Model Selection (shared)
+
+| Variable | Default | Description |
+|----------|---------|-------------|
 | `ANTHROPIC_MAX_OUTPUT_TOKENS` | - | Override max output tokens for any model |
 | `ANTHROPIC_CONTEXT_WINDOW` | - | Override context window size for any model |
 | `MAX_THINKING_TOKENS` | - | Extended thinking token limit |
 | `THINK_TOOL` | - | Set to `1` to enable extended thinking |
-| `CLAUDE_CODE_USE_BEDROCK` | `false` | Enable AWS Bedrock backend |
-| `CLAUDE_CODE_USE_VERTEX` | `false` | Enable Google Vertex AI backend |
-| `CLOUD_ML_REGION` | `us-east5` | GCP region for Vertex AI |
 
 ## Proxy & Network
 
@@ -68,7 +90,7 @@ When both are set, the Telegram bot **auto-starts** with QuantWise — no need t
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `CLAUDE_CONFIG_DIR` | `~/.claude` | Override config directory |
+| `CLAUDE_CONFIG_DIR` | `~/.quantwise` | Override config directory |
 
 ## Feature Flags
 

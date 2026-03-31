@@ -1,11 +1,11 @@
 # Configuration Files
 
-QuantWise uses several configuration files stored in `~/.claude/` (or `$CLAUDE_CONFIG_DIR`).
+QuantWise uses several configuration files stored in `~/.quantwise/` (or `$CLAUDE_CONFIG_DIR`). The main config file lives at `~/.quantwise.json`.
 
 ## Directory Structure
 
 ```
-~/.claude/
+~/.quantwise/
 ├── config.json              # Global + per-project config
 ├── settings.json            # Plugin settings
 ├── settings.local.json      # Permission overrides
@@ -150,7 +150,7 @@ QuantWise reads this file automatically to understand your project's conventions
 Custom skills are stored as directories with a `SKILL.md` file:
 
 ```
-~/.claude/skills/
+~/.quantwise/skills/
 └── my-skill/
     └── SKILL.md
 ```

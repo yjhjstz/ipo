@@ -18,7 +18,6 @@ ANTHROPIC_AUTH_TOKEN=your_zhipu_api_key
 ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/anthropic
 ANTHROPIC_MODEL=glm-4.7
 API_TIMEOUT_MS=3000000
-USER_TYPE=SWE_BENCH
 
 # 模型层级映射
 ANTHROPIC_DEFAULT_OPUS_MODEL=glm-5
@@ -28,7 +27,7 @@ ANTHROPIC_DEFAULT_HAIKU_MODEL=glm-4.5-air
 
 ### 方式二：通过 settings.json 配置
 
-编辑 `~/.claude/settings.json`：
+编辑 `~/.quantwise/settings.json`：
 
 ```json
 {
@@ -103,7 +102,7 @@ Model Tiers
 ### Q: /model 选择的模型和 ANTHROPIC_MODEL 环境变量哪个优先？
 
 模型优先级从高到低：
-1. `/model` 命令选择（项目级，存储在 `~/.claude.json` 的 projects 配置中）
+1. `/model` 命令选择（项目级，存储在 `~/.quantwise.json` 的 projects 配置中）
 2. `ANTHROPIC_MODEL` 环境变量
 3. `ANTHROPIC_DEFAULT_SONNET_MODEL` 环境变量
 4. 硬编码默认值

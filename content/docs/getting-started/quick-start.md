@@ -2,15 +2,21 @@
 
 ## 1. Set Your API Key
 
+**Anthropic:**
 ```bash
 export ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-Or login with your Anthropic account:
-
+**OpenAI-compatible (OpenAI, AnyRouter, local servers):**
 ```bash
-quantwise
-# Then run: /login
+export OPENAI_API_KEY=sk-...
+export OPENAI_BASE_URL=https://api.openai.com/v1  # optional, for custom endpoints
+```
+
+**GLM / Anthropic-compatible proxies:**
+```bash
+export ANTHROPIC_AUTH_TOKEN=your_api_key
+export ANTHROPIC_BASE_URL=https://open.bigmodel.cn/api/anthropic
 ```
 
 ## 2. Start an Interactive Session

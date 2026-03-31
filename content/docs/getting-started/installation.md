@@ -10,7 +10,7 @@ npm install -g quantwise
 
 - **macOS**, **Linux**, or **Windows** (WSL recommended)
 - **Node.js** 18+ (only for npm install method)
-- An **Anthropic API key** (or OAuth login)
+- An **API key** — Anthropic (`sk-ant-...`), OpenAI-compatible, GLM, or any other supported provider
 
 ## Verify Installation
 
